@@ -15,6 +15,8 @@ const hub = {
   createUnit: (data: { project_id: string; parent_unit_id?: string; title?: string; order_key?: string }) =>
     ipcRenderer.invoke('unit:create', data),
   updateUnit: (id: string, data: any) => ipcRenderer.invoke('unit:update', id, data),
+  reorderUnit: (id: string, newOrderKey: string, newParentId: string | null) => 
+    ipcRenderer.invoke('unit:reorder', id, newOrderKey, newParentId),
   deleteUnit: (id: string) => ipcRenderer.invoke('unit:delete', id),
 
   // Entity

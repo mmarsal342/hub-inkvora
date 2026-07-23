@@ -26,7 +26,6 @@ export default function App() {
     try {
       let loadedProjects = await window.hub.listProjects()
       
-      // Auto-create a default project if none exists (for MVP flow)
       if (loadedProjects.length === 0) {
         const p = await window.hub.createProject({ 
           title: 'Untitled Project', 
@@ -36,8 +35,7 @@ export default function App() {
         loadedProjects = [p]
       }
       
-      const proj = loadedProjects[0]
-      loadProjectData(proj)
+      await loadProjectData(loadedProjects[0])
     } catch (err) {
       console.error('initApp failed:', err)
     } finally {
@@ -64,6 +62,12 @@ export default function App() {
     setEntities(loadedEntities)
   }
 
+  async function refreshUnits() {
+    if (!activeProject) return
+    const loaded = await window.hub.listUnits(activeProject.id)
+    setUnits(loaded)
+  }
+
   if (loading || !activeProject) return <div class="ih-empty-state">Loading InkVora Hub...</div>
 
   return (
@@ -79,6 +83,31 @@ export default function App() {
             const u = await window.hub.createUnit({ project_id: activeProject.id, title: 'New Scene' })
             setUnits([...units, u])
             setActiveUnitId(u.id)
+          }}
+          onAddChildUnit={async (parentId: string) => {
+            const u = await window.hub.createUnit({ 
+              project_id: activeProject.id, 
+              parent_unit_id: parentId, 
+              title: 'New Sub-Scene' 
+            })
+            setUnits([...units, u])
+            setActiveUnitId(u.id)
+          }}
+          onReorder={async (id, newOrderKey, newParentId) => {
+            await window.hub.reorderUnit(id, newOrderKey, newParentId)
+            await refreshUnits()
+          }}
+          onDeleteUnit={async (id) => {
+            await window.hub.deleteUnit(id)
+            setUnits(units.filter(u => u.id !== id && u.parent_unit_id !== id))
+            if (activeUnitId === id) {
+              const remaining = units.filter(u => u.id !== id)
+              setActiveUnitId(remaining[0]?.id || null)
+            }
+          }}
+          onRenameUnit={async (id, title) => {
+            const updated = await window.hub.updateUnit(id, { title })
+            setUnits(units.map(u => u.id === id ? updated : u))
           }}
           theme={theme}
           onToggleTheme={toggleTheme}

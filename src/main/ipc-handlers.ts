@@ -67,6 +67,14 @@ export function registerIpcHandlers() {
     return getDb().prepare('SELECT * FROM unit WHERE id = ?').get(id)
   })
 
+  ipcMain.handle('unit:reorder', (_e, id: string, newOrderKey: string, newParentId: string | null) => {
+    const ts = now()
+    getDb().prepare(
+      'UPDATE unit SET order_key = ?, parent_unit_id = ?, updated_at = ? WHERE id = ?'
+    ).run(newOrderKey, newParentId, ts, id)
+    return getDb().prepare('SELECT * FROM unit WHERE id = ?').get(id)
+  })
+
   ipcMain.handle('unit:delete', (_e, id: string) => {
     getDb().prepare('DELETE FROM unit WHERE id = ?').run(id)
     return true
