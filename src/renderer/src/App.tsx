@@ -24,42 +24,44 @@ export default function App() {
   async function initApp() {
     setLoading(true)
     try {
-      let projects = await window.hub.listProjects()
+      let loadedProjects = await window.hub.listProjects()
       
       // Auto-create a default project if none exists (for MVP flow)
-      if (projects.length === 0) {
+      if (loadedProjects.length === 0) {
         const p = await window.hub.createProject({ 
           title: 'Untitled Project', 
           format: 'novel', 
           primary_language: 'id' 
         })
-        projects = [p]
+        loadedProjects = [p]
       }
       
-      const proj = projects[0]
-      setActiveProject(proj)
-      
-      const [loadedUnits, loadedEntities] = await Promise.all([
-        window.hub.listUnits(proj.id),
-        window.hub.listEntities(proj.id)
-      ])
-      
-      // Auto-create a first scene if empty
-      if (loadedUnits.length === 0) {
-        const u = await window.hub.createUnit({ project_id: proj.id, title: 'Chapter 1' })
-        setUnits([u])
-        setActiveUnitId(u.id)
-      } else {
-        setUnits(loadedUnits)
-        setActiveUnitId(loadedUnits[0].id)
-      }
-      
-      setEntities(loadedEntities)
+      const proj = loadedProjects[0]
+      loadProjectData(proj)
     } catch (err) {
       console.error('initApp failed:', err)
     } finally {
       setLoading(false)
     }
+  }
+
+  async function loadProjectData(proj: Project) {
+    setActiveProject(proj)
+    const [loadedUnits, loadedEntities] = await Promise.all([
+      window.hub.listUnits(proj.id),
+      window.hub.listEntities(proj.id)
+    ])
+
+    if (loadedUnits.length === 0) {
+      const u = await window.hub.createUnit({ project_id: proj.id, title: 'Chapter 1' })
+      setUnits([u])
+      setActiveUnitId(u.id)
+    } else {
+      setUnits(loadedUnits)
+      setActiveUnitId(loadedUnits[0].id)
+    }
+
+    setEntities(loadedEntities)
   }
 
   if (loading || !activeProject) return <div class="ih-empty-state">Loading InkVora Hub...</div>
@@ -80,6 +82,7 @@ export default function App() {
           }}
           theme={theme}
           onToggleTheme={toggleTheme}
+          onSelectProject={loadProjectData}
         />
         <EditorPane 
           unit={units.find(u => u.id === activeUnitId) || null} 
