@@ -6,8 +6,10 @@ import './styles/index.css'
 import Sidebar from './components/Sidebar'
 import EditorPane from './components/EditorPane'
 import InspectorPane from './components/InspectorPane'
+import { useTheme } from './hooks/useTheme'
 
 export default function App() {
+  const { theme, toggle: toggleTheme } = useTheme()
   const [activeProject, setActiveProject] = useState<Project | null>(null)
   const [units, setUnits] = useState<Unit[]>([])
   const [entities, setEntities] = useState<Entity[]>([])
@@ -76,6 +78,8 @@ export default function App() {
             setUnits([...units, u])
             setActiveUnitId(u.id)
           }}
+          theme={theme}
+          onToggleTheme={toggleTheme}
         />
         <EditorPane 
           unit={units.find(u => u.id === activeUnitId) || null} 

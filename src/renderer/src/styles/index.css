@@ -4,58 +4,88 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --bg: #0a0a0a;
-  --surface: #111111;
-  --surface2: #161616;
-  --border: #1f1f1f;
-  --border2: #2a2a2a;
-  --text: #f0ede8;
-  --muted: #5a5754;
-  --muted2: #807c77;
+/* ── Dark Theme (default, soft black) ───────────────── */
+:root,
+[data-theme="dark"] {
+  --bg: #1a1a1a;
+  --surface: #242424;
+  --surface2: #2d2d2d;
+  --surface-alt: #1f1f1c;
+  --editor-bg: #252420;
+  --editor-text: #e0dbd0;
+  --border: #3a3a3a;
+  --border2: #4a4a4a;
+  --border-faint: #2f2f2f;
+  --text: #e8e6e3;
+  --text-heading: #f0ede8;
+  --muted: #8a8780;
+  --muted2: #6b6862;
   --accent: #e8ff47;
+  --accent-soft: rgba(232,255,71,0.12);
   --accent2: #ff6b35;
-  --font-display: 'Syne', sans-serif;
-  --font-mono: 'DM Mono', monospace;
-  --font-sans: 'Syne', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-* { box-sizing: border-box; }
+/* ── Light Theme (soft cream, not white) ────────────── */
+[data-theme="light"] {
+  --bg: #f5f3ee;
+  --surface: #edebe5;
+  --surface2: #e3e0da;
+  --surface-alt: #efece4;
+  --editor-bg: #faf7f0;
+  --editor-text: #2d2a24;
+  --border: #d6d3cd;
+  --border2: #c4c1bb;
+  --border-faint: #e0ddd5;
+  --text: #2d2a26;
+  --text-heading: #1a1815;
+  --muted: #96938e;
+  --muted2: #76736e;
+  --accent: #94a62e;
+  --accent-soft: rgba(148,166,46,0.10);
+  --accent2: #d15a2a;
+}
+
+/* ── Global ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
 
 html, body, #app {
   height: 100%;
   width: 100%;
   overflow: hidden;
-  font-family: var(--font-display);
+  font-family: 'Syne', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: var(--bg);
   color: var(--text);
   user-select: none;
+  transition: background 0.3s, color 0.3s;
 }
 
 /* Noise overlay */
 #app::before {
   content: ''; position: fixed; inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
   pointer-events: none; z-index: 1000;
-}
-#app::after {
-  content: ''; position: fixed; width: 70vw; max-width: 600px; aspect-ratio: 1;
-  background: radial-gradient(circle, rgba(232,255,71,0.06) 0%, transparent 70%);
-  top: -15%; left: -15%; pointer-events: none; z-index: 0;
+  opacity: 0.4;
 }
 
 /* Grid bg */
 .bg-grid {
   position: fixed; inset: 0;
   background-image:
-    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    linear-gradient(var(--border-faint) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-faint) 1px, transparent 1px);
   background-size: 56px 56px;
   mask-image: radial-gradient(ellipse 100% 60% at 50% 0%, black, transparent);
   pointer-events: none; z-index: 0;
+  transition: background-image 0.3s;
 }
 
-/* ── 3-Pane Layout ────────────────────────────────── */
+/* ── Scrollbar ──────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+/* ── 3-Pane Layout ──────────────────────────────────── */
 .ih-3pane {
   display: grid;
   grid-template-columns: 260px 1fr 300px;
@@ -64,52 +94,64 @@ html, body, #app {
   z-index: 1;
 }
 
-.ih-pane {
-  overflow-y: auto;
-  user-select: none;
-}
-
-.ih-pane::-webkit-scrollbar { width: 4px; }
-.ih-pane::-webkit-scrollbar-track { background: transparent; }
-.ih-pane::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-
 .ih-sidebar {
   background: var(--surface);
   border-right: 1px solid var(--border);
+  transition: background 0.3s, border-color 0.3s;
 }
 
 .ih-editor-wrap {
-  background: var(--bg);
+  background: var(--surface-alt);
   display: flex;
   flex-direction: column;
+  transition: background 0.3s;
 }
 
 .ih-inspector {
   background: var(--surface);
   border-left: 1px solid var(--border);
+  transition: background 0.3s, border-color 0.3s;
 }
 
-/* ── Editor ────────────────────────────────────────── */
+/* ── Editor ─────────────────────────────────────────── */
 .ih-editor {
   flex: 1;
   overflow-y: auto;
   user-select: text;
-  padding: 2rem 3rem;
-  font-size: 1rem;
-  line-height: 1.8;
+  padding: 2.5rem 3.5rem;
+  font-size: 1.05rem;
+  line-height: 1.85;
   outline: none;
-  font-family: var(--font-sans);
-  color: #e0ddd8;
+  color: var(--editor-text);
+  background: var(--editor-bg);
+  transition: background 0.3s, color 0.3s;
+  letter-spacing: 0.005em;
 }
 
-.ih-editor:focus-within { background: rgba(255,255,255,0.01); }
+.ih-editor:focus-within {
+  box-shadow: inset 0 0 0 2px var(--accent-soft);
+}
 
 .ih-editor .ProseMirror {
   outline: none;
   min-height: 100%;
+  max-width: 680px;
+  margin: 0 auto;
 }
 
-.ih-editor .ProseMirror p { margin: 0.5em 0; }
+.ih-editor .ProseMirror p { margin: 0.6em 0; }
+
+.ih-editor .ProseMirror h1 { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em; margin: 1em 0 0.5em; }
+.ih-editor .ProseMirror h2 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.01em; margin: 0.8em 0 0.4em; }
+.ih-editor .ProseMirror h3 { font-size: 1.15rem; font-weight: 600; margin: 0.6em 0 0.3em; }
+.ih-editor .ProseMirror ul, .ih-editor .ProseMirror ol { padding-left: 1.5em; }
+.ih-editor .ProseMirror blockquote {
+  border-left: 2px solid var(--accent);
+  padding-left: 1em;
+  margin-left: 0;
+  color: var(--muted);
+  font-style: italic;
+}
 
 .ih-editor .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
@@ -117,9 +159,10 @@ html, body, #app {
   color: var(--muted);
   pointer-events: none;
   height: 0;
+  font-style: italic;
 }
 
-/* ── Header Bar ────────────────────────────────────── */
+/* ── Header Bar ─────────────────────────────────────── */
 .ih-header {
   padding: 0.75rem 1.25rem;
   border-bottom: 1px solid var(--border);
@@ -132,6 +175,7 @@ html, body, #app {
   background: var(--surface2);
   font-weight: 600;
   letter-spacing: 0.03em;
+  transition: background 0.3s, border-color 0.3s, color 0.3s;
 }
 
 .ih-header input,
@@ -139,8 +183,8 @@ html, body, #app {
   background: transparent;
   outline: none;
   border: none;
-  color: var(--text);
-  font-family: var(--font-display);
+  color: var(--text-heading);
+  font-family: 'Syne', sans-serif;
   font-weight: 700;
   font-size: 1rem;
   letter-spacing: -0.02em;
@@ -148,29 +192,27 @@ html, body, #app {
 
 .ih-header input::placeholder { color: var(--muted); }
 
-/* ── Tree / Sidebar ────────────────────────────────── */
+/* ── Tree / Sidebar ─────────────────────────────────── */
 .ih-tree-item {
   padding: 0.5rem 0.75rem;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   border-radius: 6px;
   margin: 2px 8px;
-  transition: all 0.1s;
+  transition: all 0.15s;
   font-weight: 600;
   letter-spacing: -0.01em;
 }
 
-.ih-tree-item:hover {
-  background: rgba(255,255,255,0.03);
-}
+.ih-tree-item:hover { background: var(--accent-soft); }
 
 .ih-tree-item.active {
-  background: rgba(232,255,71,0.08);
+  background: var(--accent-soft);
   color: var(--accent);
-  border: 1px solid rgba(232,255,71,0.15);
+  border: 1px solid var(--accent);
 }
 
-/* ── Buttons ───────────────────────────────────────── */
+/* ── Buttons ────────────────────────────────────────── */
 .ih-btn {
   padding: 0.4rem 1rem;
   border: 1px solid var(--border);
@@ -178,7 +220,7 @@ html, body, #app {
   background: transparent;
   color: var(--text);
   cursor: pointer;
-  font-family: var(--font-display);
+  font-family: 'Syne', sans-serif;
   font-weight: 600;
   font-size: 0.75rem;
   transition: all 0.15s;
@@ -194,6 +236,7 @@ html, body, #app {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--bg);
+  font-weight: 700;
 }
 
 .ih-btn-primary:hover {
@@ -201,7 +244,24 @@ html, body, #app {
   color: var(--accent);
 }
 
-/* ── Entity ────────────────────────────────────────── */
+/* Theme toggle button */
+.ih-theme-btn {
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.ih-theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── Entity Cards ───────────────────────────────────── */
 .ih-entity-card {
   padding: 0.6rem 0.75rem;
   border: 1px solid var(--border);
@@ -217,7 +277,7 @@ html, body, #app {
   background: rgba(255,107,53,0.04);
 }
 
-/* ── States ────────────────────────────────────────── */
+/* ── Empty / Loading States ─────────────────────────── */
 .ih-empty-state {
   display: flex;
   flex-direction: column;
@@ -230,20 +290,56 @@ html, body, #app {
   font-size: 0.9rem;
 }
 
-/* ── Logo ──────────────────────────────────────────── */
+/* ── Logo ───────────────────────────────────────────── */
 .ih-logo {
   font-size: 1.1rem;
   font-weight: 800;
   letter-spacing: -0.02em;
+  color: var(--text-heading);
 }
 .ih-logo span { color: var(--accent); }
 
 /* ── Section headers ────────────────────────────────── */
 .ih-section-title {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   color: var(--muted);
-  font-weight: 600;
+  font-weight: 700;
   padding: 1rem 1rem 0.5rem;
 }
+
+/* ── Filter tabs ────────────────────────────────────── */
+.ih-tab {
+  font-size: 10px;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  background: transparent;
+  transition: all 0.15s;
+}
+
+.ih-tab:hover { color: var(--muted2); }
+
+.ih-tab.active {
+  background: var(--border);
+  color: var(--accent);
+}
+
+/* ── Form inputs ────────────────────────────────────── */
+.ih-input {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  outline: none;
+  border-radius: 6px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.ih-input::placeholder { color: var(--muted); font-weight: 400; }
+.ih-input:focus { border-color: var(--accent); }
