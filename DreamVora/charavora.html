@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CharaVora — VoraLab</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --border: #252525;
+    --border2: #333;
+    --lime: #e8ff47;
+    --orange: #ff6b35;
+    --text: #efefef;
+    --muted: #555;
+    --muted2: #888;
+    --display: 'Syne', sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--display);
+    min-height: 100vh;
+    padding: 28px 24px 60px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 36px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .wordmark { font-size: 22px; font-weight: 800; letter-spacing: -1px; line-height: 1; }
+  .wordmark em { color: var(--lime); font-style: normal; }
+
+  .sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    margin-top: 5px;
+  }
+
+  .voralab-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    border: 1px solid var(--border2);
+    padding: 4px 10px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+  }
+
+  /* ─── TABS ─── */
+  .tabs {
+    display: flex;
+    gap: 2px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 3px;
+    width: fit-content;
+    margin-bottom: 32px;
+  }
+
+  .tab-btn {
+    background: none;
+    border: none;
+    color: var(--muted2);
+    font-family: var(--display);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px 22px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.2px;
+  }
+
+  .tab-btn.active { background: var(--lime); color: #0a0a0a; }
+  .tab-btn:hover:not(.active) { color: var(--text); background: var(--surface2); }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ─── SECTION LABEL ─── */
+  .sec-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 14px;
+  }
+
+  /* ─── SYSTEMS GRID ─── */
+  .systems-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .field-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted2);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .sys-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--border2);
+    flex-shrink: 0;
+  }
+
+  .select-wrap { position: relative; }
+
+  .select-wrap::after {
+    content: '▾';
+    position: absolute;
+    right: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+    font-size: 11px;
+  }
+
+  select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 9px 32px 9px 11px;
+    border-radius: 7px;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+
+  select:focus { border-color: var(--lime); }
+  select:hover { border-color: var(--border2); }
+  select option { background: #181818; }
+
+  /* ─── CONTEXT ─── */
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  textarea, input[type="text"] {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 12px;
+    border-radius: 7px;
+    outline: none;
+    transition: border-color 0.15s;
+    line-height: 1.7;
+    resize: vertical;
+  }
+
+  textarea:focus, input[type="text"]:focus { border-color: var(--lime); }
+  textarea::placeholder, input::placeholder { color: var(--muted); }
+
+  /* ─── BUTTONS ─── */
+  .actions { display: flex; gap: 10px; align-items: center; margin-top: 18px; }
+
+  .btn-primary {
+    background: var(--lime);
+    color: #0a0a0a;
+    border: none;
+    font-family: var(--display);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 11px 28px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.2px;
+  }
+
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .btn-ghost {
+    background: none;
+    color: var(--muted2);
+    border: 1px solid var(--border);
+    font-family: var(--display);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 10px 18px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-ghost:hover { color: var(--text); border-color: var(--border2); }
+
+  /* ─── LOADING DOTS ─── */
+  .dots { display: inline-flex; gap: 3px; align-items: center; }
+  .dots span {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: #0a0a0a;
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  .dots span:nth-child(2) { animation-delay: 0.2s; }
+  .dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes pulse {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  /* ─── OUTPUT ─── */
+  .output-wrap {
+    margin-top: 36px;
+    display: none;
+  }
+
+  .output-wrap.visible { display: block; }
+
+  .output-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .output-topbar {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .output-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--lime);
+  }
+
+  .topbar-right { display: flex; gap: 8px; align-items: center; }
+
+  .btn-copy {
+    background: var(--border);
+    color: var(--muted2);
+    border: none;
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-copy:hover { background: var(--border2); color: var(--text); }
+
+  /* badges */
+  .badge-row {
+    padding: 12px 18px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .badge-row:empty { display: none; }
+
+  .badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 3px 9px;
+    border-radius: 4px;
+    border: 1px solid var(--border2);
+    color: var(--lime);
+    letter-spacing: 0.5px;
+    background: rgba(232,255,71,0.04);
+  }
+
+  /* content */
+  .output-body { padding: 26px 22px; }
+
+  .output-body h2 {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    color: var(--lime);
+    margin: 28px 0 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .output-body h2:first-child { margin-top: 0; }
+
+  .output-body p {
+    font-size: 14px;
+    line-height: 1.85;
+    color: #d8d8d8;
+    margin-bottom: 10px;
+  }
+
+  .output-body strong { color: var(--lime); font-weight: 600; }
+  .output-body em { color: var(--muted2); font-style: italic; }
+
+  .output-body ul {
+    padding-left: 18px;
+    margin-bottom: 10px;
+  }
+
+  .output-body ul li {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #d8d8d8;
+    margin-bottom: 4px;
+  }
+
+  /* ─── COUNTER ─── */
+  .sel-count {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 18px;
+  }
+
+  .sel-count span { color: var(--lime); }
+
+  /* ─── REVERSE ─── */
+  .reverse-hint {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 8px;
+    line-height: 1.6;
+  }
+
+  /* ─── CHAR NAME FIELD ─── */
+  .char-name-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .char-name-row input {
+    flex: 1;
+    resize: none;
+  }
+
+  @media (max-width: 580px) {
+    .systems-grid { grid-template-columns: 1fr 1fr; }
+    body { padding: 16px 14px 48px; }
+    header { flex-direction: column; align-items: flex-start; gap: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="wordmark">Chara<em>Vora</em></div>
+    <div class="sub">Character Psychology Engine · VoraLab</div>
+  </div>
+  <a href="https://voralab.id" target="_blank" class="voralab-badge" style="text-decoration:none; cursor:pointer;">voralab.id ↗</a>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('build')">⬡ Build Character</button>
+  <button class="tab-btn" onclick="switchTab('reverse')">◎ Reverse Lookup</button>
+</div>
+
+<!-- ══ BUILD TAB ══ -->
+<div class="panel active" id="panel-build">
+
+  <div class="char-name-row">
+    <input type="text" id="char-name" placeholder="Nama karakter (opsional)..." style="min-height:unset; resize:none;">
+  </div>
+
+  <div class="sec-label">Pilih Sistem Kepribadian</div>
+  <div class="sel-count" id="sel-count"><span>0</span> sistem dipilih — pilih minimal 1</div>
+
+  <div class="systems-grid">
+
+    <div class="field">
+      <div class="field-label"><span class="sys-dot"></span>MBTI</div>
+      <div class="select-wrap">
+        <select id="s-mbti" onchange="updateCount()">
+          <option value="">— skip —</option>
+          <optgroup label="Analyst">
+            <option>INTJ</option><option>INTP</option><option>ENTJ</option><option>ENTP</option>
+          </optgroup>
+          <optgroup label="Diplomat">
+            <option>INFJ</option><option>INFP</option><option>ENFJ</option><option>ENFP</option>
+          </optgroup>
+          <optgroup label="Sentinel">
+            <option>ISTJ</option><option>ISFJ</option><option>ESTJ</option><option>ESFJ</option>
+          </optgroup>
+          <optgroup label="Explorer">
+            <option>ISTP</option><option>ISFP</option><option>ESTP</option><option>ESFP</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label"><span class="sys-dot"></span>Enneagram</div>
+      <div class="select-wrap">
+        <select id="s-enn" onchange="updateCount()">
+          <option value="">— skip —</option>
+          <option value="1w9">Type 1w9 – Idealist</option>
+          <option value="1w2">Type 1w2 – Advocate</option>
+          <option value="2w1">Type 2w1 – Servant</option>
+          <option value="2w3">Type 2w3 – Host</option>
+          <option value="3w2">Type 3w2 – Charmer</option>
+          <option value="3w4">Type 3w4 – Professional</option>
+          <option value="4w3">Type 4w3 – Aristocrat</option>
+          <option value="4w5">Type 4w5 – Bohemian</option>
+          <option value="5w4">Type 5w4 – Iconoclast</option>
+          <option value="5w6">Type 5w6 – Problem Solver</option>
+          <option value="6w5">Type 6w5 – Defender</option>
+          <option value="6w7">Type 6w7 – Buddy</option>
+          <option value="7w6">Type 7w6 – Entertainer</option>
+          <option value="7w8">Type 7w8 – Realist</option>
+          <option value="8w7">Type 8w7 – Maverick</option>
+          <option value="8w9">Type 8w9 – Bear</option>
+          <option value="9w8">Type 9w8 – Referee</option>
+          <option value="9w1">Type 9w1 – Dreamer</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label"><span class="sys-dot"></span>Zodiac Barat</div>
+      <div class="select-wrap">
+        <select id="s-zodiac" onchange="updateCount()">
+          <option value="">— skip —</option>
+          <option>Aries ♈</option><option>Taurus ♉</option><option>Gemini ♊</option>
+          <option>Cancer ♋</option><option>Leo ♌</option><option>Virgo ♍</option>
+          <option>Libra ♎</option><option>Scorpio ♏</option><option>Sagittarius ♐</option>
+          <option>Capricorn ♑</option><option>Aquarius ♒</option><option>Pisces ♓</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label"><span class="sys-dot"></span>Shio</div>
+      <div class="select-wrap">
+        <select id="s-shio" onchange="updateCount()">
+          <option value="">— skip —</option>
+          <option>Tikus 鼠</option><option>Kerbau 牛</option><option>Macan 虎</option>
+          <option>Kelinci 兔</option><option>Naga 龍</option><option>Ular 蛇</option>
+          <option>Kuda 馬</option><option>Kambing 羊</option><option>Monyet 猴</option>
+          <option>Ayam 雞</option><option>Anjing 狗</option><option>Babi 豬</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label"><span class="sys-dot"></span>Weton Jawa</div>
+      <div class="select-wrap">
+        <select id="s-weton" onchange="updateCount()">
+          <option value="">— skip —</option>
+          <optgroup label="Ahad (Minggu)">
+            <option>Ahad Legi</option><option>Ahad Pahing</option><option>Ahad Pon</option><option>Ahad Wage</option><option>Ahad Kliwon</option>
+          </optgroup>
+          <optgroup label="Senin">
+            <option>Senin Legi</option><option>Senin Pahing</option><option>Senin Pon</option><option>Senin Wage</option><option>Senin Kliwon</option>
+          </optgroup>
+          <optgroup label="Selasa">
+            <option>Selasa Legi</option><option>Selasa Pahing</option><option>Selasa Pon</option><option>Selasa Wage</option><option>Selasa Kliwon</option>
+          </optgroup>
+          <optgroup label="Rabu">
+            <option>Rabu Legi</option><option>Rabu Pahing</option><option>Rabu Pon</option><option>Rabu Wage</option><option>Rabu Kliwon</option>
+          </optgroup>
+          <optgroup label="Kamis">
+            <option>Kamis Legi</option><option>Kamis Pahing</option><option>Kamis Pon</option><option>Kamis Wage</option><option>Kamis Kliwon</option>
+          </optgroup>
+          <optgroup label="Jumat">
+            <option>Jumat Legi</option><option>Jumat Pahing</option><option>Jumat Pon</option><option>Jumat Wage</option><option>Jumat Kliwon</option>
+          </optgroup>
+          <optgroup label="Sabtu">
+            <option>Sabtu Legi</option><option>Sabtu Pahing</option><option>Sabtu Pon</option><option>Sabtu Wage</option><option>Sabtu Kliwon</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label"><span class="sys-dot"></span>Golongan Darah</div>
+      <div class="select-wrap">
+        <select id="s-blood" onchange="updateCount()">
+          <option value="">— skip —</option>
+          <option>Gol. Darah A</option>
+          <option>Gol. Darah B</option>
+          <option>Gol. Darah AB</option>
+          <option>Gol. Darah O</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label"><span class="sys-dot"></span>D&D Alignment</div>
+      <div class="select-wrap">
+        <select id="s-align" onchange="updateCount()">
+          <option value="">— skip —</option>
+          <option>Lawful Good</option><option>Neutral Good</option><option>Chaotic Good</option>
+          <option>Lawful Neutral</option><option>True Neutral</option><option>Chaotic Neutral</option>
+          <option>Lawful Evil</option><option>Neutral Evil</option><option>Chaotic Evil</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label"><span class="sys-dot"></span>Jungian Archetype</div>
+      <div class="select-wrap">
+        <select id="s-arch" onchange="updateCount()">
+          <option value="">— skip —</option>
+          <option>The Hero</option><option>The Caregiver</option><option>The Sage</option>
+          <option>The Innocent</option><option>The Explorer</option><option>The Rebel</option>
+          <option>The Lover</option><option>The Creator</option><option>The Jester</option>
+          <option>The Magician</option><option>The Ruler</option><option>The Orphan</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label"><span class="sys-dot"></span>Big Five Dominan</div>
+      <div class="select-wrap">
+        <select id="s-b5" onchange="updateCount()">
+          <option value="">— skip —</option>
+          <optgroup label="Openness">
+            <option>High Openness (Curiosity, Art, Ideas)</option>
+            <option>Low Openness (Routine, Practical, Concrete)</option>
+          </optgroup>
+          <optgroup label="Conscientiousness">
+            <option>High Conscientiousness (Disciplined, Organized)</option>
+            <option>Low Conscientiousness (Spontaneous, Flexible)</option>
+          </optgroup>
+          <optgroup label="Extraversion">
+            <option>High Extraversion (Social, Energetic)</option>
+            <option>High Introversion (Reserved, Reflective)</option>
+          </optgroup>
+          <optgroup label="Agreeableness">
+            <option>High Agreeableness (Cooperative, Empathetic)</option>
+            <option>Low Agreeableness (Competitive, Skeptical)</option>
+          </optgroup>
+          <optgroup label="Neuroticism">
+            <option>High Neuroticism (Anxious, Sensitive)</option>
+            <option>Low Neuroticism (Calm, Stable)</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label"><span class="sys-dot"></span>Love Language</div>
+      <div class="select-wrap">
+        <select id="s-ll" onchange="updateCount()">
+          <option value="">— skip —</option>
+          <option>Words of Affirmation</option>
+          <option>Acts of Service</option>
+          <option>Receiving Gifts</option>
+          <option>Quality Time</option>
+          <option>Physical Touch</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label"><span class="sys-dot"></span>Attachment Style</div>
+      <div class="select-wrap">
+        <select id="s-att" onchange="updateCount()">
+          <option value="">— skip —</option>
+          <option>Secure</option>
+          <option>Anxious-Preoccupied</option>
+          <option>Dismissive-Avoidant</option>
+          <option>Fearful-Avoidant (Disorganized)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label"><span class="sys-dot"></span>Element</div>
+      <div class="select-wrap">
+        <select id="s-elem" onchange="updateCount()">
+          <option value="">— skip —</option>
+          <option>Fire — Passion, Will, Aggression</option>
+          <option>Water — Emotion, Intuition, Depth</option>
+          <option>Earth — Stability, Pragmatism, Patience</option>
+          <option>Air — Intellect, Detachment, Freedom</option>
+          <option>Wood (五行) — Growth, Flexibility, Ambition</option>
+          <option>Metal (五行) — Precision, Justice, Coldness</option>
+        </select>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="field" style="margin-bottom: 6px;">
+    <div class="field-label" style="margin-bottom:7px;"><span class="sys-dot"></span>Context / Notes <span style="color:var(--muted); font-size:9px; text-transform:none; letter-spacing:0; font-style:italic">(opsional)</span></div>
+    <textarea id="txt-ctx" rows="3" placeholder="Misal: villain utama, setting Jawa colonial 1920s, latar keluarga broken home, umur 30an, punya adik yang jadi motivasi terselubung..."></textarea>
+  </div>
+
+  <div class="actions">
+    <button class="btn-primary" id="btn-build" onclick="buildChar()">
+      <span id="btn-build-lbl">Generate Profile</span>
+      <div class="dots" id="dots-build" style="display:none"><span></span><span></span><span></span></div>
+    </button>
+    <button class="btn-ghost" onclick="clearBuild()">Clear All</button>
+  </div>
+</div>
+
+<!-- ══ REVERSE TAB ══ -->
+<div class="panel" id="panel-reverse">
+  <div class="sec-label">Deskripsikan Kepribadian Karaktermu</div>
+
+  <div class="field" style="margin-bottom: 10px;">
+    <textarea id="txt-rev" rows="7" placeholder="Tulis sebebas mungkin... misal: 'Dia sangat keras kepala tapi setia sampai mati buat orang-orang yang dia sayang. Punya dark side yang disembunyiin rapat-rapat. Perfeksionis, suka kontrol segala hal, tapi sebenarnya takut ditinggalkan. Kalau marah jarang meledak, lebih ke menghilang diam-diam. Di permukaan kelihatan dingin dan sarkas, padahal overthinking terus soal relationship.'"></textarea>
+  </div>
+
+  <p class="reverse-hint">Gemini akan match ke sistem MBTI, Enneagram, Zodiac, Shio, Weton, Gol. Darah, Alignment, Archetype, Attachment Style, dan Big Five — sekaligus analisis kenapa kombinasi itu cocok.</p>
+
+  <div class="actions" style="margin-top:16px;">
+    <button class="btn-primary" id="btn-rev" onclick="reverseMatch()">
+      <span id="btn-rev-lbl">Match Personality</span>
+      <div class="dots" id="dots-rev" style="display:none"><span></span><span></span><span></span></div>
+    </button>
+  </div>
+</div>
+
+<!-- ══ OUTPUT ══ -->
+<div class="output-wrap" id="output-wrap">
+  <div class="output-card">
+    <div class="output-topbar">
+      <div class="output-title" id="out-title">Character Profile</div>
+      <div class="topbar-right">
+        <button class="btn-copy" onclick="copyOut(this)">Copy Text</button>
+        <button class="btn-copy" onclick="exportTxt()" style="background:rgba(232,255,71,0.1);color:var(--lime);border:1px solid rgba(232,255,71,0.25);">↓ Export .txt</button>
+      </div>
+    </div>
+    <div class="badge-row" id="badge-row"></div>
+    <div class="output-body" id="out-body"></div>
+  </div>
+</div>
+
+<script>
+const apiKey = "";
+const MODEL  = "gemini-2.5-flash-preview-05-20";
+
+const SELECTORS = {
+  "MBTI":             "s-mbti",
+  "Enneagram":        "s-enn",
+  "Zodiac Barat":     "s-zodiac",
+  "Shio":             "s-shio",
+  "Weton Jawa":       "s-weton",
+  "Golongan Darah":   "s-blood",
+  "D&D Alignment":    "s-align",
+  "Jungian Archetype":"s-arch",
+  "Big Five":         "s-b5",
+  "Love Language":    "s-ll",
+  "Attachment Style": "s-att",
+  "Element":          "s-elem",
+};
+
+function switchTab(t) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', (i===0&&t==='build')||(i===1&&t==='reverse')));
+  document.getElementById('panel-build').classList.toggle('active', t==='build');
+  document.getElementById('panel-reverse').classList.toggle('active', t==='reverse');
+  document.getElementById('output-wrap').classList.remove('visible');
+}
+
+function getSelections() {
+  const r = {};
+  for (const [lbl, id] of Object.entries(SELECTORS)) {
+    const v = document.getElementById(id).value;
+    if (v) r[lbl] = v;
+  }
+  return r;
+}
+
+function updateCount() {
+  const n = Object.keys(getSelections()).length;
+  const el = document.getElementById('sel-count');
+  el.innerHTML = `<span>${n}</span> sistem dipilih${n===0?' — pilih minimal 1':''}`;
+}
+
+function renderBadges(sel) {
+  const row = document.getElementById('badge-row');
+  row.innerHTML = '';
+  for (const [sys, val] of Object.entries(sel)) {
+    const d = document.createElement('span');
+    d.className = 'badge';
+    d.textContent = `${sys}: ${val}`;
+    row.appendChild(d);
+  }
+}
+
+// Minimal markdown → HTML
+function md2html(text) {
+  const lines = text.split('\n');
+  const out = [];
+  let inUl = false;
+
+  for (let raw of lines) {
+    let line = raw
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/`(.+?)`/g, '<code>$1</code>');
+
+    if (/^#{1,3} /.test(raw)) {
+      if (inUl) { out.push('</ul>'); inUl = false; }
+      out.push(`<h2>${raw.replace(/^#{1,3} /, '')}</h2>`);
+    } else if (/^[-•*] /.test(raw)) {
+      if (!inUl) { out.push('<ul>'); inUl = true; }
+      out.push(`<li>${line.replace(/^[-•*] /, '')}</li>`);
+    } else if (raw.trim() === '') {
+      if (inUl) { out.push('</ul>'); inUl = false; }
+    } else {
+      if (inUl) { out.push('</ul>'); inUl = false; }
+      out.push(`<p>${line}</p>`);
+    }
+  }
+  if (inUl) out.push('</ul>');
+  return out.join('');
+}
+
+async function gemini(prompt) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 1.0, maxOutputTokens: 3000 }
+    })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.candidates[0].content.parts[0].text;
+}
+
+async function buildChar() {
+  const sel = getSelections();
+  if (!Object.keys(sel).length) { alert('Pilih minimal satu sistem dulu.'); return; }
+
+  const name    = document.getElementById('char-name').value.trim();
+  const context = document.getElementById('txt-ctx').value.trim();
+  setLoad('build', true);
+
+  const sysList = Object.entries(sel).map(([k,v]) => `- ${k}: ${v}`).join('\n');
+  const nameLine = name ? `Nama karakter: **${name}**\n` : '';
+  const ctxLine  = context ? `\nKonteks tambahan dari penulis: ${context}` : '';
+
+  const prompt = `Kamu adalah character psychology synthesizer untuk fiction writers. Tugasmu: synthesize kombinasi sistem kepribadian ini menjadi karakter fiksi yang kaya, nuanced, dan terasa hidup.
+
+${nameLine}Sistem kepribadian yang dipilih:
+${sysList}${ctxLine}
+
+Buat character profile dengan struktur berikut. Tulis dengan kedalaman novelis—bukan textbook. Cari TENSIONS dan CONTRADICTIONS antar sistem, karena di situlah karakter menjadi menarik.
+
+## Core Essence
+2–3 paragraf tentang siapa karakter ini di inti terdalamnya. Fokus pada apa yang membuat KOMBINASI SPESIFIK ini unik — ketegangan, kontradiksi, dan sinergi antar sistem yang dipilih.
+
+## Kekuatan (Story-Relevant)
+Apa yang mereka kuasai. Bagaimana mereka hadir secara powerful dalam narasi. Spesifik, bukan generik.
+
+## Luka & Blind Spot
+Core wound mereka. Apa yang tidak bisa mereka lihat tentang diri sendiri. Di mana mereka self-sabotage tanpa sadar.
+
+## Cara Bicara & Gaya Komunikasi
+Bagaimana mereka berbicara — pola kalimat, apa yang mereka katakan vs. maksud sebenarnya, bagaimana mereka handle konflik verbal. Beri contoh kalimat kalau memungkinkan.
+
+## Ketakutan Terdalam
+Bukan ketakutan permukaan. Yang di bawahnya. Yang bahkan mereka sendiri mungkin tidak akui.
+
+## Motivasi & Desire
+Apa yang mereka pikir mereka inginkan vs. apa yang sebenarnya mereka butuhkan. Bedakan keduanya.
+
+## Shadow Side
+Versi gelap karakter ini. Apa yang terjadi ketika pola terburuk mereka take over.
+
+## Arc Potential
+3 kemungkinan character arc — sertakan growth arc, tragic arc, dan satu yang ambiguous/grey. Masing-masing 2–3 kalimat.
+
+## Titik Kontradiksi
+Minimal 4 internal conflict yang membuat mereka compelling. Bukan klise — cari yang spesifik dari kombinasi sistem ini.
+
+## Dalam Konflik & Tekanan
+Bagaimana perilaku konkret mereka ketika under pressure atau di scene konflik besar. Detail dan vivid.
+
+Gunakan bahasa Indonesia di mana natural. Mix dengan English untuk istilah teknis psychology jika perlu.`;
+
+  try {
+    const result = await gemini(prompt);
+    showOutput(name ? `${name} — Character Profile` : 'Character Profile', sel, result);
+  } catch (e) {
+    showOutputRaw(`<p style="color:var(--orange)">⚠ Error: ${e.message}</p>`);
+  }
+  setLoad('build', false);
+}
+
+async function reverseMatch() {
+  const desc = document.getElementById('txt-rev').value.trim();
+  if (!desc) { alert('Tulis deskripsi karakter dulu.'); return; }
+  setLoad('rev', true);
+
+  const prompt = `Kamu adalah character psychology classifier untuk fiction writers. Berdasarkan deskripsi karakter berikut, identifikasi best match di setiap sistem kepribadian.
+
+Deskripsi karakter:
+"${desc}"
+
+Respond dengan struktur berikut:
+
+## System Matches
+
+Untuk setiap sistem di bawah, berikan: match terbaik + confidence (🟢 High / 🟡 Medium / 🔴 Low) + reasoning 1–2 kalimat.
+
+- **MBTI**: 
+- **Enneagram** (sertakan wing kalau bisa):
+- **Zodiac Barat**:
+- **Shio**:
+- **Weton Jawa** (fokus pada energi pasaran kalau hari tidak jelas):
+- **Golongan Darah**:
+- **D&D Alignment**:
+- **Jungian Archetype**:
+- **Attachment Style**:
+- **Big Five** (trait paling dominan):
+- **Love Language** (yang paling dibutuhkan, bukan diberikan):
+
+## Mengapa Kombinasi Ini Koheren
+Satu paragraf — jelaskan bagaimana semua match di atas membentuk portrait psikologis yang utuh. Cari connecting thread.
+
+## Di Mana Sistemnya Kurang Pas
+Jujur tentang trait mana dalam deskripsi yang tidak fit sempurna ke sistem mana pun. Ini membantu penulis tahu batas sistemnya.
+
+## 3 Sistem Paling Akurat untuk Karakter Ini
+Kalau penulis hanya mau pakai 3 lens, pakai yang mana? Kenapa?
+
+Gunakan bahasa Indonesia. Mix English untuk istilah teknis.`;
+
+  try {
+    const result = await gemini(prompt);
+    showOutput('Reverse Match Result', {}, result);
+  } catch (e) {
+    showOutputRaw(`<p style="color:var(--orange)">⚠ Error: ${e.message}</p>`);
+  }
+  setLoad('rev', false);
+}
+
+function showOutput(title, sel, markdown) {
+  document.getElementById('out-title').textContent = title;
+  renderBadges(sel);
+  document.getElementById('out-body').innerHTML = md2html(markdown);
+  const wrap = document.getElementById('output-wrap');
+  wrap.classList.add('visible');
+  wrap.style.display = 'block';
+  setTimeout(() => wrap.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+}
+
+function showOutputRaw(html) {
+  document.getElementById('out-body').innerHTML = html;
+  const wrap = document.getElementById('output-wrap');
+  wrap.classList.add('visible');
+  wrap.style.display = 'block';
+}
+
+function setLoad(mode, on) {
+  const btn  = document.getElementById(`btn-${mode}`);
+  const lbl  = document.getElementById(`btn-${mode}-lbl`);
+  const dots = document.getElementById(`dots-${mode}`);
+  btn.disabled   = on;
+  lbl.style.display  = on ? 'none' : '';
+  dots.style.display = on ? 'flex' : 'none';
+}
+
+function clearBuild() {
+  Object.values(SELECTORS).forEach(id => document.getElementById(id).value = '');
+  document.getElementById('char-name').value = '';
+  document.getElementById('txt-ctx').value   = '';
+  document.getElementById('output-wrap').style.display = 'none';
+  updateCount();
+}
+
+function copyOut(btn) {
+  const text = document.getElementById('out-body').innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ Copied';
+    setTimeout(() => btn.textContent = 'Copy Text', 2000);
+  });
+}
+
+function exportTxt() {
+  const title = document.getElementById('out-title').textContent;
+  const badges = [...document.querySelectorAll('#badge-row .badge')].map(b => b.textContent).join(' | ');
+  const body   = document.getElementById('out-body').innerText;
+  const date   = new Date().toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
+
+  const content = [
+    '═══════════════════════════════════════',
+    `  CHARAVORA — ${title.toUpperCase()}`,
+    '═══════════════════════════════════════',
+    badges ? `\nSistem: ${badges}` : '',
+    `Generated: ${date}`,
+    '\n───────────────────────────────────────\n',
+    body,
+    '\n───────────────────────────────────────',
+    'CharaVora · VoraLab (voralab.id)',
+  ].filter(Boolean).join('\n');
+
+  const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const filename = `charavora-${slug}.txt`;
+
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href: url, download: filename });
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <span class="footer-brand">Chara<em>Vora</em></span>
+      <a href="https://voralab.id" target="_blank" class="footer-link">voralab.id ↗</a>
+    </div>
+    <p class="footer-disclaimer">CharaVora is a creative writing tool. All personality systems (MBTI, Enneagram, Zodiac, Weton, etc.) are used here as narrative frameworks and character-building lenses — not as scientific assessments or predictions of real human behavior. Results are AI-generated and intended solely to inspire fiction writing.</p>
+    <div class="footer-bottom">
+      <span>© 2025 VoraLab · PT Modular Media Asia</span>
+      <span class="footer-grace">Built by the grace of God 🤲</span>
+    </div>
+  </div>
+</footer>
+
+<style>
+footer {
+  margin-top: 64px;
+  border-top: 1px solid var(--border);
+  padding: 28px 0 20px;
+}
+.footer-inner { display: flex; flex-direction: column; gap: 12px; }
+.footer-top { display: flex; align-items: center; justify-content: space-between; }
+.footer-brand { font-size: 15px; font-weight: 800; letter-spacing: -0.5px; }
+.footer-brand em { color: var(--lime); font-style: normal; }
+.footer-link {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted2);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border2);
+  padding-bottom: 1px;
+  transition: color 0.15s;
+}
+.footer-link:hover { color: var(--lime); border-color: var(--lime); }
+.footer-disclaimer {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.7;
+  max-width: 680px;
+}
+.footer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.footer-grace { color: var(--muted2); letter-spacing: 0.5px; }
+@media (max-width: 580px) {
+  .footer-bottom { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</body>
+</html>

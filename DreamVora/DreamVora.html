@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DreamVora — VoraLab</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a; --surface: #111111; --surface2: #1a1a1a;
+    --border: #252525; --border2: #333;
+    --lime: #e8ff47; --orange: #ff6b35;
+    --text: #efefef; --muted: #555; --muted2: #888;
+    --display: 'Syne', sans-serif; --mono: 'DM Mono', monospace;
+    --sidebar-w: 224px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--display); min-height: 100vh;
+    display: flex; flex-direction: column;
+  }
+
+  /* ── LAYOUT ── */
+  .app { display: flex; flex: 1; min-height: 100vh; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: var(--sidebar-w); flex-shrink: 0;
+    background: var(--surface); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+
+  .sidebar-header {
+    padding: 22px 16px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .wordmark { font-size: 19px; font-weight: 800; letter-spacing: -0.5px; line-height: 1; }
+  .wordmark em { color: var(--lime); font-style: normal; }
+  .sidebar-sub {
+    font-family: var(--mono); font-size: 9px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 2px; margin-top: 5px;
+  }
+
+  .sidebar-nav { flex: 1; padding: 10px 8px; display: flex; flex-direction: column; gap: 2px; }
+
+  .nav-section-label {
+    font-family: var(--mono); font-size: 9px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 2.5px; padding: 10px 8px 6px;
+  }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px; border-radius: 8px; cursor: pointer;
+    transition: all 0.15s; border: none; background: none;
+    width: 100%; text-align: left;
+  }
+
+  .nav-item:hover:not(.active):not(.soon) { background: var(--surface2); }
+  .nav-item.active {
+    background: rgba(232,255,71,0.08);
+    border: 1px solid rgba(232,255,71,0.15);
+  }
+  .nav-item.soon { opacity: 0.38; cursor: default; }
+
+  .nav-icon { font-size: 13px; width: 18px; flex-shrink: 0; text-align: center; }
+  .nav-text { flex: 1; min-width: 0; }
+  .nav-name { font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.2; }
+  .nav-item.active .nav-name { color: var(--lime); }
+  .nav-desc {
+    font-family: var(--mono); font-size: 9px; color: var(--muted);
+    line-height: 1.4; margin-top: 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .soon-badge {
+    font-family: var(--mono); font-size: 8px; color: var(--muted);
+    border: 1px solid var(--border2); padding: 2px 6px;
+    border-radius: 3px; letter-spacing: 0.5px; flex-shrink: 0;
+  }
+
+  .sidebar-footer { padding: 12px 14px; border-top: 1px solid var(--border); }
+  .hub-link {
+    display: flex; align-items: center; gap: 10px; padding: 9px 10px;
+    border-radius: 7px; background: rgba(232,255,71,0.05);
+    border: 1px solid rgba(232,255,71,0.12);
+    text-decoration: none; transition: all 0.15s;
+  }
+  .hub-link:hover { background: rgba(232,255,71,0.1); border-color: rgba(232,255,71,0.25); }
+  .hub-link-text { font-family: var(--mono); font-size: 11px; color: var(--lime); letter-spacing: 0.5px; }
+  .hub-link-sub  { font-family: var(--mono); font-size: 9px; color: var(--muted); margin-top: 1px; }
+
+  /* ── MAIN CONTENT ── */
+  .content { flex: 1; padding: 32px 32px 64px; overflow-y: auto; }
+
+  /* ── TOOL PANELS ── */
+  .tool-panel { display: none; }
+  .tool-panel.active { display: block; }
+
+  .tool-header {
+    display: flex; align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 28px; padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap; gap: 12px;
+  }
+
+  .tool-title { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  .tool-title em { color: var(--lime); font-style: normal; }
+  .tool-subtitle {
+    font-family: var(--mono); font-size: 10px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 2.5px; margin-top: 5px;
+  }
+
+  .voralab-badge {
+    font-family: var(--mono); font-size: 10px; color: var(--muted);
+    border: 1px solid var(--border2); padding: 4px 10px;
+    border-radius: 4px; letter-spacing: 1px;
+    text-decoration: none; transition: color 0.15s, border-color 0.15s;
+  }
+  .voralab-badge:hover { color: var(--lime); border-color: rgba(232,255,71,0.4); }
+
+  /* ── COMING SOON ── */
+  .coming-soon {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    min-height: 380px; text-align: center; gap: 16px;
+  }
+  .cs-icon { font-size: 32px; opacity: 0.25; }
+  .cs-title { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+  .cs-title em { color: var(--lime); font-style: normal; }
+  .cs-desc {
+    font-family: var(--mono); font-size: 12px; color: var(--muted2);
+    max-width: 420px; line-height: 1.7;
+  }
+  .cs-output {
+    font-family: var(--mono); font-size: 10px; color: var(--muted);
+    border: 1px solid var(--border2); padding: 6px 14px;
+    border-radius: 5px; letter-spacing: 0.5px;
+  }
+  .cs-output span { color: var(--lime); }
+
+  /* ── CHARAVORA STYLES ── */
+  .tabs {
+    display: flex; gap: 2px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 3px; width: fit-content; max-width: 100%;
+    overflow-x: auto; margin-bottom: 32px; scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    background: none; border: none; color: var(--muted2); flex-shrink: 0;
+    font-family: var(--display); font-size: 13px; font-weight: 600;
+    padding: 9px 22px; border-radius: 8px; cursor: pointer;
+    transition: all 0.15s; letter-spacing: 0.2px; white-space: nowrap;
+  }
+  .tab-btn.active { background: var(--lime); color: #0a0a0a; }
+  .tab-btn:hover:not(.active) { color: var(--text); background: var(--surface2); }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .sec-label {
+    font-family: var(--mono); font-size: 10px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 3px; margin-bottom: 14px;
+  }
+  .systems-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px; margin-bottom: 24px;
+  }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field-label {
+    font-family: var(--mono); font-size: 10px; color: var(--muted2);
+    text-transform: uppercase; letter-spacing: 1.5px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .sys-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--border2); flex-shrink: 0; }
+  .select-wrap { position: relative; }
+  .select-wrap::after {
+    content: '▾'; position: absolute; right: 11px; top: 50%;
+    transform: translateY(-50%); color: var(--muted);
+    pointer-events: none; font-size: 11px;
+  }
+  select {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); font-family: var(--mono); font-size: 12px;
+    padding: 9px 32px 9px 11px; border-radius: 7px; outline: none;
+    appearance: none; -webkit-appearance: none; cursor: pointer; transition: border-color 0.15s;
+  }
+  select:focus { border-color: var(--lime); }
+  select:hover { border-color: var(--border2); }
+  select option { background: #181818; }
+
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  /* ── AKSARAVORA: SHARED FORM LAYOUT ── */
+  .ak-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+  .ak-row .field { flex: 1; min-width: 160px; }
+  .ak-charcount { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 6px; text-align: right; }
+
+  /* ── AKSARAVORA: WORD COUNTER STAT GRID ── */
+  .stat-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px; margin-top: 18px;
+  }
+  .stat-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 9px; padding: 14px 16px;
+  }
+  .stat-num { font-size: 24px; font-weight: 800; color: var(--lime); letter-spacing: -0.5px; line-height: 1; }
+  .stat-lbl {
+    font-family: var(--mono); font-size: 9px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 1.5px; margin-top: 6px;
+  }
+
+  /* ── AKSARAVORA: COMPOSITION ANALYZER ── */
+  .comp-bar {
+    display: flex; width: 100%; height: 30px; border-radius: 7px;
+    overflow: hidden; background: var(--surface); border: 1px solid var(--border);
+  }
+  .comp-bar > div { transition: width 0.4s ease; min-width: 2px; }
+  .comp-legend {
+    display: flex; flex-wrap: wrap; gap: 14px;
+    margin-top: 14px; margin-bottom: 6px;
+  }
+  .comp-legend-item {
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 11px; color: var(--muted2);
+  }
+  .comp-legend-item strong { color: var(--text); }
+  .comp-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .comp-dominant {
+    font-family: var(--mono); font-size: 10px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 2px; margin-top: 20px; margin-bottom: 4px;
+  }
+  .comp-dominant span { color: var(--lime); }
+
+  textarea, input[type="text"] {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); font-family: var(--mono); font-size: 13px;
+    padding: 12px; border-radius: 7px; outline: none;
+    transition: border-color 0.15s; line-height: 1.7; resize: vertical;
+  }
+  textarea:focus, input[type="text"]:focus { border-color: var(--lime); }
+  textarea::placeholder, input::placeholder { color: var(--muted); }
+
+  .actions { display: flex; gap: 10px; align-items: center; margin-top: 18px; }
+
+  .btn-primary {
+    background: var(--lime); color: #0a0a0a; border: none;
+    font-family: var(--display); font-size: 13px; font-weight: 700;
+    padding: 11px 28px; border-radius: 7px; cursor: pointer;
+    transition: opacity 0.15s; display: flex; align-items: center;
+    gap: 8px; letter-spacing: 0.2px;
+  }
+  .btn-primary:hover { opacity: 0.85; }
+  .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .btn-ghost {
+    background: none; color: var(--muted2); border: 1px solid var(--border);
+    font-family: var(--display); font-size: 12px; font-weight: 600;
+    padding: 10px 18px; border-radius: 7px; cursor: pointer; transition: all 0.15s;
+  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--border2); }
+
+  .dots { display: inline-flex; gap: 3px; align-items: center; }
+  .dots span {
+    width: 5px; height: 5px; border-radius: 50%; background: #0a0a0a;
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  .dots span:nth-child(2) { animation-delay: 0.2s; }
+  .dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  .output-wrap { margin-top: 36px; display: none; }
+  .output-wrap.visible { display: block; }
+  .output-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .output-topbar {
+    background: var(--surface2); border-bottom: 1px solid var(--border);
+    padding: 14px 18px; display: flex; align-items: center;
+    justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  }
+  .output-title {
+    font-family: var(--mono); font-size: 10px;
+    text-transform: uppercase; letter-spacing: 3px; color: var(--lime);
+  }
+  .topbar-right { display: flex; gap: 8px; align-items: center; }
+  .btn-copy {
+    background: var(--border); color: var(--muted2); border: none;
+    font-family: var(--mono); font-size: 11px; padding: 5px 12px;
+    border-radius: 5px; cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px;
+  }
+  .btn-copy:hover { background: var(--border2); color: var(--text); }
+
+  .badge-row { padding: 12px 18px; display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid var(--border); }
+  .badge-row:empty { display: none; }
+  .badge {
+    font-family: var(--mono); font-size: 10px; padding: 3px 9px;
+    border-radius: 4px; border: 1px solid var(--border2);
+    color: var(--lime); letter-spacing: 0.5px; background: rgba(232,255,71,0.04);
+  }
+
+  .output-body { padding: 26px 22px; }
+  .output-body h2 {
+    font-family: var(--mono); font-size: 11px; text-transform: uppercase;
+    letter-spacing: 2.5px; color: var(--lime);
+    margin: 28px 0 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  .output-body h2:first-child { margin-top: 0; }
+  .output-body p { font-size: 14px; line-height: 1.85; color: #d8d8d8; margin-bottom: 10px; }
+  .output-body strong { color: var(--lime); font-weight: 600; }
+  .output-body em { color: var(--muted2); font-style: italic; }
+  .output-body ul { padding-left: 18px; margin-bottom: 10px; }
+  .output-body ul li { font-size: 14px; line-height: 1.8; color: #d8d8d8; margin-bottom: 4px; }
+
+  .sel-count { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 18px; }
+  .sel-count span { color: var(--lime); }
+  .reverse-hint { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 8px; line-height: 1.6; }
+  .char-name-row { display: flex; gap: 10px; margin-bottom: 16px; }
+  .char-name-row input { flex: 1; resize: none; }
+
+  /* ── FOOTER ── */
+  footer { margin-top: 64px; border-top: 1px solid var(--border); padding: 28px 0 20px; }
+  .footer-inner { display: flex; flex-direction: column; gap: 12px; }
+  .footer-top { display: flex; align-items: center; justify-content: space-between; }
+  .footer-brand { font-size: 15px; font-weight: 800; letter-spacing: -0.5px; }
+  .footer-brand em { color: var(--lime); font-style: normal; }
+  .footer-link {
+    font-family: var(--mono); font-size: 11px; color: var(--muted2);
+    text-decoration: none; border-bottom: 1px solid var(--border2);
+    padding-bottom: 1px; transition: color 0.15s;
+  }
+  .footer-link:hover { color: var(--lime); border-color: var(--lime); }
+  .footer-disclaimer { font-family: var(--mono); font-size: 10px; color: var(--muted); line-height: 1.7; max-width: 680px; }
+  .footer-bottom {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 8px; font-family: var(--mono);
+    font-size: 10px; color: var(--muted);
+    padding-top: 8px; border-top: 1px solid var(--border);
+  }
+  .footer-grace { color: var(--muted2); letter-spacing: 0.5px; }
+
+  /* ── MOBILE TAB BAR (replaces sidebar nav on small screens) ── */
+  .mobile-tabs {
+    display: none; gap: 8px; overflow-x: auto;
+    padding: 4px 0 14px; margin-bottom: 18px;
+    border-bottom: 1px solid var(--border);
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  .mobile-tabs::-webkit-scrollbar { display: none; }
+  .mobile-tab {
+    flex-shrink: 0; display: flex; align-items: center; gap: 6px;
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--muted2); font-family: var(--display); font-size: 12px; font-weight: 700;
+    padding: 9px 14px; border-radius: 20px; cursor: pointer; white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .mobile-tab.active { background: rgba(232,255,71,0.1); border-color: rgba(232,255,71,0.4); color: var(--lime); }
+  .mobile-tab.soon { opacity: 0.4; }
+  .mobile-tab .mt-icon { font-size: 12px; }
+  .mobile-tab .mt-badge {
+    font-family: var(--mono); font-size: 8px; color: var(--muted);
+    margin-left: 2px; letter-spacing: 0.5px;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 680px) {
+    .sidebar { display: none; }
+    .content { padding: 16px 16px 48px; }
+    .mobile-tabs { display: flex; }
+    .systems-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="wordmark">Dream<em>Vora</em></div>
+      <div class="sidebar-sub">Pre-writing Suite · VoraLab</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Tools</div>
+
+      <button class="nav-item active" data-tool="charavora" onclick="switchTool('charavora')">
+        <div class="nav-icon">⬡</div>
+        <div class="nav-text">
+          <div class="nav-name">CharaVora</div>
+          <div class="nav-desc">Character psychology</div>
+        </div>
+      </button>
+
+      <button class="nav-item" data-tool="aksaravora" onclick="switchTool('aksaravora')">
+        <div class="nav-icon">◎</div>
+        <div class="nav-text">
+          <div class="nav-name">AksaraVora</div>
+          <div class="nav-desc">Paraphrase & prose analytics</div>
+        </div>
+      </button>
+
+      <button class="nav-item soon" disabled>
+        <div class="nav-icon">◎</div>
+        <div class="nav-text">
+          <div class="nav-name">VoiceVora</div>
+          <div class="nav-desc">Voice calibration</div>
+        </div>
+        <div class="soon-badge">soon</div>
+      </button>
+
+      <button class="nav-item soon" disabled>
+        <div class="nav-icon">⬡</div>
+        <div class="nav-text">
+          <div class="nav-name">ArchitectVora</div>
+          <div class="nav-desc">Story structure</div>
+        </div>
+        <div class="soon-badge">soon</div>
+      </button>
+
+      <button class="nav-item soon" disabled>
+        <div class="nav-icon">◎</div>
+        <div class="nav-text">
+          <div class="nav-name">SummaryVora</div>
+          <div class="nav-desc">Chapter finalization</div>
+        </div>
+        <div class="soon-badge">soon</div>
+      </button>
+
+      <button class="nav-item soon" disabled>
+        <div class="nav-icon">⬡</div>
+        <div class="nav-text">
+          <div class="nav-name">ClashVora</div>
+          <div class="nav-desc">Scene & conflict sim</div>
+        </div>
+        <div class="soon-badge">soon</div>
+      </button>
+
+      <button class="nav-item soon" disabled>
+        <div class="nav-icon">◎</div>
+        <div class="nav-text">
+          <div class="nav-name">WorldVora</div>
+          <div class="nav-desc">Worldbuilding</div>
+        </div>
+        <div class="soon-badge">soon</div>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="https://ink.voralab.id" target="_blank" rel="noopener" class="hub-link">
+        <div>
+          <div class="hub-link-text">InkVora Hub ↗</div>
+          <div class="hub-link-sub">Write your story</div>
+        </div>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN CONTENT ═══ -->
+  <main class="content">
+
+    <!-- ══ MOBILE TAB BAR ══ -->
+    <nav class="mobile-tabs">
+      <button class="mobile-tab active" data-tool="charavora" onclick="switchTool('charavora')">
+        <span class="mt-icon">⬡</span> CharaVora
+      </button>
+      <button class="mobile-tab" data-tool="aksaravora" onclick="switchTool('aksaravora')">
+        <span class="mt-icon">◎</span> AksaraVora
+      </button>
+      <button class="mobile-tab soon" disabled>
+        <span class="mt-icon">◎</span> VoiceVora <span class="mt-badge">soon</span>
+      </button>
+      <button class="mobile-tab soon" disabled>
+        <span class="mt-icon">⬡</span> ArchitectVora <span class="mt-badge">soon</span>
+      </button>
+      <button class="mobile-tab soon" disabled>
+        <span class="mt-icon">◎</span> SummaryVora <span class="mt-badge">soon</span>
+      </button>
+      <button class="mobile-tab soon" disabled>
+        <span class="mt-icon">⬡</span> ClashVora <span class="mt-badge">soon</span>
+      </button>
+      <button class="mobile-tab soon" disabled>
+        <span class="mt-icon">◎</span> WorldVora <span class="mt-badge">soon</span>
+      </button>
+    </nav>
+
+    <!-- ══ CHARAVORA PANEL ══ -->
+    <div class="tool-panel active" id="panel-charavora">
+
+      <div class="tool-header">
+        <div>
+          <div class="tool-title">Chara<em>Vora</em></div>
+          <div class="tool-subtitle">Character Psychology Engine</div>
+        </div>
+        <a href="https://voralab.id" target="_blank" class="voralab-badge">voralab.id ↗</a>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('build')">⬡ Build Character</button>
+        <button class="tab-btn" onclick="switchTab('reverse')">◎ Reverse Lookup</button>
+      </div>
+
+      <!-- BUILD TAB -->
+      <div class="panel active" id="panel-build">
+        <div class="char-name-row">
+          <input type="text" id="char-name" placeholder="Nama karakter (opsional)...">
+        </div>
+
+        <div class="sec-label">Pilih Sistem Kepribadian</div>
+        <div class="sel-count" id="sel-count"><span>0</span> sistem dipilih — pilih minimal 1</div>
+
+        <div class="systems-grid">
+          <div class="field">
+            <div class="field-label"><span class="sys-dot"></span>MBTI</div>
+            <div class="select-wrap">
+              <select id="s-mbti" onchange="updateCount()">
+                <option value="">— skip —</option>
+                <optgroup label="Analyst"><option>INTJ</option><option>INTP</option><option>ENTJ</option><option>ENTP</option></optgroup>
+                <optgroup label="Diplomat"><option>INFJ</option><option>INFP</option><option>ENFJ</option><option>ENFP</option></optgroup>
+                <optgroup label="Sentinel"><option>ISTJ</option><option>ISFJ</option><option>ESTJ</option><option>ESFJ</option></optgroup>
+                <optgroup label="Explorer"><option>ISTP</option><option>ISFP</option><option>ESTP</option><option>ESFP</option></optgroup>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span class="sys-dot"></span>Enneagram</div>
+            <div class="select-wrap">
+              <select id="s-enn" onchange="updateCount()">
+                <option value="">— skip —</option>
+                <option value="1w9">Type 1w9 – Idealist</option><option value="1w2">Type 1w2 – Advocate</option>
+                <option value="2w1">Type 2w1 – Servant</option><option value="2w3">Type 2w3 – Host</option>
+                <option value="3w2">Type 3w2 – Charmer</option><option value="3w4">Type 3w4 – Professional</option>
+                <option value="4w3">Type 4w3 – Aristocrat</option><option value="4w5">Type 4w5 – Bohemian</option>
+                <option value="5w4">Type 5w4 – Iconoclast</option><option value="5w6">Type 5w6 – Problem Solver</option>
+                <option value="6w5">Type 6w5 – Defender</option><option value="6w7">Type 6w7 – Buddy</option>
+                <option value="7w6">Type 7w6 – Entertainer</option><option value="7w8">Type 7w8 – Realist</option>
+                <option value="8w7">Type 8w7 – Maverick</option><option value="8w9">Type 8w9 – Bear</option>
+                <option value="9w8">Type 9w8 – Referee</option><option value="9w1">Type 9w1 – Dreamer</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span class="sys-dot"></span>Zodiac Barat</div>
+            <div class="select-wrap">
+              <select id="s-zodiac" onchange="updateCount()">
+                <option value="">— skip —</option>
+                <option>Aries ♈</option><option>Taurus ♉</option><option>Gemini ♊</option><option>Cancer ♋</option>
+                <option>Leo ♌</option><option>Virgo ♍</option><option>Libra ♎</option><option>Scorpio ♏</option>
+                <option>Sagittarius ♐</option><option>Capricorn ♑</option><option>Aquarius ♒</option><option>Pisces ♓</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span class="sys-dot"></span>Shio</div>
+            <div class="select-wrap">
+              <select id="s-shio" onchange="updateCount()">
+                <option value="">— skip —</option>
+                <option>Tikus 鼠</option><option>Kerbau 牛</option><option>Macan 虎</option><option>Kelinci 兔</option>
+                <option>Naga 龍</option><option>Ular 蛇</option><option>Kuda 馬</option><option>Kambing 羊</option>
+                <option>Monyet 猴</option><option>Ayam 雞</option><option>Anjing 狗</option><option>Babi 豬</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span class="sys-dot"></span>Weton Jawa</div>
+            <div class="select-wrap">
+              <select id="s-weton" onchange="updateCount()">
+                <option value="">— skip —</option>
+                <optgroup label="Ahad (Minggu)"><option>Ahad Legi</option><option>Ahad Pahing</option><option>Ahad Pon</option><option>Ahad Wage</option><option>Ahad Kliwon</option></optgroup>
+                <optgroup label="Senin"><option>Senin Legi</option><option>Senin Pahing</option><option>Senin Pon</option><option>Senin Wage</option><option>Senin Kliwon</option></optgroup>
+                <optgroup label="Selasa"><option>Selasa Legi</option><option>Selasa Pahing</option><option>Selasa Pon</option><option>Selasa Wage</option><option>Selasa Kliwon</option></optgroup>
+                <optgroup label="Rabu"><option>Rabu Legi</option><option>Rabu Pahing</option><option>Rabu Pon</option><option>Rabu Wage</option><option>Rabu Kliwon</option></optgroup>
+                <optgroup label="Kamis"><option>Kamis Legi</option><option>Kamis Pahing</option><option>Kamis Pon</option><option>Kamis Wage</option><option>Kamis Kliwon</option></optgroup>
+                <optgroup label="Jumat"><option>Jumat Legi</option><option>Jumat Pahing</option><option>Jumat Pon</option><option>Jumat Wage</option><option>Jumat Kliwon</option></optgroup>
+                <optgroup label="Sabtu"><option>Sabtu Legi</option><option>Sabtu Pahing</option><option>Sabtu Pon</option><option>Sabtu Wage</option><option>Sabtu Kliwon</option></optgroup>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span class="sys-dot"></span>Golongan Darah</div>
+            <div class="select-wrap">
+              <select id="s-blood" onchange="updateCount()">
+                <option value="">— skip —</option>
+                <option>Gol. Darah A</option><option>Gol. Darah B</option><option>Gol. Darah AB</option><option>Gol. Darah O</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span class="sys-dot"></span>D&amp;D Alignment</div>
+            <div class="select-wrap">
+              <select id="s-align" onchange="updateCount()">
+                <option value="">— skip —</option>
+                <option>Lawful Good</option><option>Neutral Good</option><option>Chaotic Good</option>
+                <option>Lawful Neutral</option><option>True Neutral</option><option>Chaotic Neutral</option>
+                <option>Lawful Evil</option><option>Neutral Evil</option><option>Chaotic Evil</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span class="sys-dot"></span>Jungian Archetype</div>
+            <div class="select-wrap">
+              <select id="s-arch" onchange="updateCount()">
+                <option value="">— skip —</option>
+                <option>The Hero</option><option>The Caregiver</option><option>The Sage</option><option>The Innocent</option>
+                <option>The Explorer</option><option>The Rebel</option><option>The Lover</option><option>The Creator</option>
+                <option>The Jester</option><option>The Magician</option><option>The Ruler</option><option>The Orphan</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span class="sys-dot"></span>Big Five Dominan</div>
+            <div class="select-wrap">
+              <select id="s-b5" onchange="updateCount()">
+                <option value="">— skip —</option>
+                <optgroup label="Openness"><option>High Openness (Curiosity, Art, Ideas)</option><option>Low Openness (Routine, Practical, Concrete)</option></optgroup>
+                <optgroup label="Conscientiousness"><option>High Conscientiousness (Disciplined, Organized)</option><option>Low Conscientiousness (Spontaneous, Flexible)</option></optgroup>
+                <optgroup label="Extraversion"><option>High Extraversion (Social, Energetic)</option><option>High Introversion (Reserved, Reflective)</option></optgroup>
+                <optgroup label="Agreeableness"><option>High Agreeableness (Cooperative, Empathetic)</option><option>Low Agreeableness (Competitive, Skeptical)</option></optgroup>
+                <optgroup label="Neuroticism"><option>High Neuroticism (Anxious, Sensitive)</option><option>Low Neuroticism (Calm, Stable)</option></optgroup>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span class="sys-dot"></span>Love Language</div>
+            <div class="select-wrap">
+              <select id="s-ll" onchange="updateCount()">
+                <option value="">— skip —</option>
+                <option>Words of Affirmation</option><option>Acts of Service</option>
+                <option>Receiving Gifts</option><option>Quality Time</option><option>Physical Touch</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span class="sys-dot"></span>Attachment Style</div>
+            <div class="select-wrap">
+              <select id="s-att" onchange="updateCount()">
+                <option value="">— skip —</option>
+                <option>Secure</option><option>Anxious-Preoccupied</option>
+                <option>Dismissive-Avoidant</option><option>Fearful-Avoidant (Disorganized)</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span class="sys-dot"></span>Element</div>
+            <div class="select-wrap">
+              <select id="s-elem" onchange="updateCount()">
+                <option value="">— skip —</option>
+                <option>Fire — Passion, Will, Aggression</option><option>Water — Emotion, Intuition, Depth</option>
+                <option>Earth — Stability, Pragmatism, Patience</option><option>Air — Intellect, Detachment, Freedom</option>
+                <option>Wood (五行) — Growth, Flexibility, Ambition</option><option>Metal (五行) — Precision, Justice, Coldness</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="field" style="margin-bottom:6px;">
+          <div class="field-label" style="margin-bottom:7px;">
+            <span class="sys-dot"></span>Context / Notes
+            <span style="color:var(--muted);font-size:9px;text-transform:none;letter-spacing:0;font-style:italic">(opsional)</span>
+          </div>
+          <textarea id="txt-ctx" rows="3" placeholder="Misal: villain utama, setting Jawa colonial 1920s, latar keluarga broken home, umur 30an, punya adik yang jadi motivasi terselubung..."></textarea>
+        </div>
+
+        <div class="actions">
+          <button class="btn-primary" id="btn-build" onclick="buildChar()">
+            <span id="btn-build-lbl">Generate Profile</span>
+            <div class="dots" id="dots-build" style="display:none"><span></span><span></span><span></span></div>
+          </button>
+          <button class="btn-ghost" onclick="clearBuild()">Clear All</button>
+        </div>
+      </div>
+
+      <!-- REVERSE TAB -->
+      <div class="panel" id="panel-reverse">
+        <div class="sec-label">Deskripsikan Kepribadian Karaktermu</div>
+        <div class="field" style="margin-bottom:10px;">
+          <textarea id="txt-rev" rows="7" placeholder="Tulis sebebas mungkin... misal: 'Dia sangat keras kepala tapi setia sampai mati buat orang-orang yang dia sayang. Punya dark side yang disembunyiin rapat-rapat...'"></textarea>
+        </div>
+        <p class="reverse-hint">Gemini akan match ke sistem MBTI, Enneagram, Zodiac, Shio, Weton, Gol. Darah, Alignment, Archetype, Attachment Style, dan Big Five — sekaligus analisis kenapa kombinasi itu cocok.</p>
+        <div class="actions" style="margin-top:16px;">
+          <button class="btn-primary" id="btn-rev" onclick="reverseMatch()">
+            <span id="btn-rev-lbl">Match Personality</span>
+            <div class="dots" id="dots-rev" style="display:none"><span></span><span></span><span></span></div>
+          </button>
+        </div>
+      </div>
+
+      <!-- OUTPUT -->
+      <div class="output-wrap" id="output-wrap">
+        <div class="output-card">
+          <div class="output-topbar">
+            <div class="output-title" id="out-title">Character Profile</div>
+            <div class="topbar-right">
+              <button class="btn-copy" onclick="copyOut(this)">Copy Text</button>
+              <button class="btn-copy" onclick="exportTxt()" style="background:rgba(232,255,71,0.1);color:var(--lime);border:1px solid rgba(232,255,71,0.25);">↓ Export .txt</button>
+            </div>
+          </div>
+          <div class="badge-row" id="badge-row"></div>
+          <div class="output-body" id="out-body"></div>
+        </div>
+      </div>
+
+    </div><!-- /panel-charavora -->
+
+    <!-- ══ AKSARAVORA PANEL ══ -->
+    <div class="tool-panel" id="panel-aksaravora">
+
+      <div class="tool-header">
+        <div>
+          <div class="tool-title">Aksara<em>Vora</em></div>
+          <div class="tool-subtitle">Paraphrase & Prose Analytics</div>
+        </div>
+        <a href="https://voralab.id" target="_blank" class="voralab-badge">voralab.id ↗</a>
+      </div>
+
+      <div class="tabs" id="ak-tabs">
+        <button class="tab-btn active" data-tab="paraphrase" onclick="akSwitchTab('paraphrase')">⬡ Paraphrase</button>
+        <button class="tab-btn" data-tab="summarize" onclick="akSwitchTab('summarize')">◎ Summarize</button>
+        <button class="tab-btn" data-tab="tone" onclick="akSwitchTab('tone')">⬡ Tone</button>
+        <button class="tab-btn" data-tab="translate" onclick="akSwitchTab('translate')">◎ Translate</button>
+        <button class="tab-btn" data-tab="grammar" onclick="akSwitchTab('grammar')">⬡ Grammar</button>
+        <button class="tab-btn" data-tab="wordcount" onclick="akSwitchTab('wordcount')">◎ Word Count</button>
+        <button class="tab-btn" data-tab="composition" onclick="akSwitchTab('composition')">⬡ Komposisi</button>
+      </div>
+
+      <!-- PARAPHRASE -->
+      <div class="panel active" id="ak-panel-paraphrase">
+        <div class="sec-label">Paraphrase Teks</div>
+        <div class="field" style="margin-bottom:12px;">
+          <textarea id="ak-par-input" rows="7" placeholder="Tempel teks yang mau di-paraphrase..." oninput="akCharCount('ak-par-input','ak-par-count')"></textarea>
+          <div class="ak-charcount" id="ak-par-count">0 kata</div>
+        </div>
+        <div class="ak-row">
+          <div class="field">
+            <div class="field-label"><span class="sys-dot"></span>Mode</div>
+            <div class="select-wrap">
+              <select id="ak-par-mode">
+                <option value="Standard">Standard — seimbang</option>
+                <option value="Fluency">Fluency — lebih lancar dibaca</option>
+                <option value="Formal">Formal — resmi/profesional</option>
+                <option value="Academic">Academic — gaya akademik</option>
+                <option value="Simple">Simple — sederhanakan</option>
+                <option value="Creative">Creative — ekspresif & variatif</option>
+                <option value="Expand">Expand — perluas dengan detail</option>
+                <option value="Shorten">Shorten — persingkat</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span class="sys-dot"></span>Tingkat Sinonim</div>
+            <div class="select-wrap">
+              <select id="ak-par-intensity">
+                <option value="Rendah">Rendah — minimal ubah kata</option>
+                <option value="Sedang" selected>Sedang</option>
+                <option value="Tinggi">Tinggi — banyak ubah kata</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn-primary" id="ak-btn-par" onclick="akParaphrase()">
+            <span id="ak-btn-par-lbl">Paraphrase</span>
+            <div class="dots" id="ak-dots-par" style="display:none"><span></span><span></span><span></span></div>
+          </button>
+        </div>
+      </div>
+
+      <!-- SUMMARIZE -->
+      <div class="panel" id="ak-panel-summarize">
+        <div class="sec-label">Ringkas Teks</div>
+        <div class="field" style="margin-bottom:12px;">
+          <textarea id="ak-sum-input" rows="9" placeholder="Tempel teks panjang yang mau diringkas..." oninput="akCharCount('ak-sum-input','ak-sum-count')"></textarea>
+          <div class="ak-charcount" id="ak-sum-count">0 kata</div>
+        </div>
+        <div class="ak-row">
+          <div class="field">
+            <div class="field-label"><span class="sys-dot"></span>Panjang Ringkasan</div>
+            <div class="select-wrap">
+              <select id="ak-sum-length">
+                <option value="Pendek">Pendek — 2-3 kalimat</option>
+                <option value="Sedang" selected>Sedang — 1 paragraf</option>
+                <option value="Panjang">Panjang — beberapa paragraf + poin</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn-primary" id="ak-btn-sum" onclick="akSummarize()">
+            <span id="ak-btn-sum-lbl">Summarize</span>
+            <div class="dots" id="ak-dots-sum" style="display:none"><span></span><span></span><span></span></div>
+          </button>
+        </div>
+      </div>
+
+      <!-- TONE -->
+      <div class="panel" id="ak-panel-tone">
+        <div class="sec-label">Ubah Tone / Nada Tulisan</div>
+        <div class="field" style="margin-bottom:12px;">
+          <textarea id="ak-tone-input" rows="7" placeholder="Tempel teks yang mau diubah nadanya..." oninput="akCharCount('ak-tone-input','ak-tone-count')"></textarea>
+          <div class="ak-charcount" id="ak-tone-count">0 kata</div>
+        </div>
+        <div class="ak-row">
+          <div class="field">
+            <div class="field-label"><span class="sys-dot"></span>Target Tone</div>
+            <div class="select-wrap">
+              <select id="ak-tone-target">
+                <option value="Formal">Formal</option>
+                <option value="Santai">Santai</option>
+                <option value="Profesional">Profesional</option>
+                <option value="Persuasif">Persuasif</option>
+                <option value="Ramah">Ramah</option>
+                <option value="Akademik">Akademik</option>
+                <option value="Storytelling">Storytelling</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn-primary" id="ak-btn-tone" onclick="akTone()">
+            <span id="ak-btn-tone-lbl">Ubah Tone</span>
+            <div class="dots" id="ak-dots-tone" style="display:none"><span></span><span></span><span></span></div>
+          </button>
+        </div>
+      </div>
+
+      <!-- TRANSLATE -->
+      <div class="panel" id="ak-panel-translate">
+        <div class="sec-label">Translate Teks</div>
+        <div class="field" style="margin-bottom:12px;">
+          <textarea id="ak-trans-input" rows="7" placeholder="Tempel teks yang mau diterjemahkan..." oninput="akCharCount('ak-trans-input','ak-trans-count')"></textarea>
+          <div class="ak-charcount" id="ak-trans-count">0 kata</div>
+        </div>
+        <div class="ak-row">
+          <div class="field">
+            <div class="field-label"><span class="sys-dot"></span>Bahasa Target</div>
+            <div class="select-wrap">
+              <select id="ak-trans-lang">
+                <option value="Inggris">Inggris</option>
+                <option value="Indonesia">Indonesia</option>
+                <option value="Mandarin">Mandarin</option>
+                <option value="Jepang">Jepang</option>
+                <option value="Korea">Korea</option>
+                <option value="Spanyol">Spanyol</option>
+                <option value="Prancis">Prancis</option>
+                <option value="Jerman">Jerman</option>
+                <option value="Arab">Arab</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span class="sys-dot"></span>Register</div>
+            <div class="select-wrap">
+              <select id="ak-trans-register">
+                <option value="Natural">Natural — sehari-hari</option>
+                <option value="Formal">Formal — baku & sopan</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn-primary" id="ak-btn-trans" onclick="akTranslate()">
+            <span id="ak-btn-trans-lbl">Translate</span>
+            <div class="dots" id="ak-dots-trans" style="display:none"><span></span><span></span><span></span></div>
+          </button>
+        </div>
+      </div>
+
+      <!-- GRAMMAR -->
+      <div class="panel" id="ak-panel-grammar">
+        <div class="sec-label">Grammar Checker</div>
+        <div class="field" style="margin-bottom:12px;">
+          <textarea id="ak-gram-input" rows="9" placeholder="Tempel teks yang mau dicek grammar, ejaan, dan tanda bacanya..." oninput="akCharCount('ak-gram-input','ak-gram-count')"></textarea>
+          <div class="ak-charcount" id="ak-gram-count">0 kata</div>
+        </div>
+        <div class="actions">
+          <button class="btn-primary" id="ak-btn-gram" onclick="akGrammar()">
+            <span id="ak-btn-gram-lbl">Check Grammar</span>
+            <div class="dots" id="ak-dots-gram" style="display:none"><span></span><span></span><span></span></div>
+          </button>
+        </div>
+      </div>
+
+      <!-- WORD COUNT (instant, no API) -->
+      <div class="panel" id="ak-panel-wordcount">
+        <div class="sec-label">Word Counter</div>
+        <div class="field" style="margin-bottom:0;">
+          <textarea id="ak-wc-input" rows="10" placeholder="Tulis atau tempel teks di sini — statistik update otomatis..." oninput="akWordCount()"></textarea>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-box"><div class="stat-num" id="ak-wc-words">0</div><div class="stat-lbl">Kata</div></div>
+          <div class="stat-box"><div class="stat-num" id="ak-wc-charsw">0</div><div class="stat-lbl">Karakter (+spasi)</div></div>
+          <div class="stat-box"><div class="stat-num" id="ak-wc-charsno">0</div><div class="stat-lbl">Karakter (-spasi)</div></div>
+          <div class="stat-box"><div class="stat-num" id="ak-wc-sent">0</div><div class="stat-lbl">Kalimat</div></div>
+          <div class="stat-box"><div class="stat-num" id="ak-wc-para">0</div><div class="stat-lbl">Paragraf</div></div>
+          <div class="stat-box"><div class="stat-num" id="ak-wc-read">—</div><div class="stat-lbl">Estimasi Baca</div></div>
+        </div>
+      </div>
+
+      <!-- COMPOSITION ANALYZER -->
+      <div class="panel" id="ak-panel-composition">
+        <div class="sec-label">Composition Analyzer</div>
+        <div class="field" style="margin-bottom:12px;">
+          <textarea id="ak-comp-input" rows="11" placeholder="Tempel satu scene/chapter (minimal beberapa paragraf) buat dianalisis komposisinya..." oninput="akCharCount('ak-comp-input','ak-comp-count')"></textarea>
+          <div class="ak-charcount" id="ak-comp-count">0 kata</div>
+        </div>
+        <p class="reverse-hint" style="margin-bottom:16px;">Gemini akan membaca teksmu dan mengestimasi proporsi Dialog, Aksi, Narasi, Deskripsi, dan Monolog Internal. Ini estimasi berbasis AI, bukan pengukuran statistik presisi — pakai sebagai cermin, bukan angka mati.</p>
+        <div class="actions">
+          <button class="btn-primary" id="ak-btn-comp" onclick="akComposition()">
+            <span id="ak-btn-comp-lbl">Analisis Komposisi</span>
+            <div class="dots" id="ak-dots-comp" style="display:none"><span></span><span></span><span></span></div>
+          </button>
+        </div>
+
+        <div class="output-wrap" id="ak-comp-wrap" style="margin-top:32px;">
+          <div class="output-card">
+            <div class="output-topbar">
+              <div class="output-title">Composition Breakdown</div>
+            </div>
+            <div class="output-body">
+              <div class="comp-bar" id="ak-comp-bar"></div>
+              <div class="comp-legend" id="ak-comp-legend"></div>
+              <div class="comp-dominant">Dominan: <span id="ak-comp-dominant">—</span></div>
+              <h2 style="margin-top:24px;">Analisis</h2>
+              <div id="ak-comp-analysis"></div>
+              <h2>Saran</h2>
+              <div id="ak-comp-suggestion"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SHARED TEXT OUTPUT (paraphrase/summarize/tone/translate/grammar) -->
+      <div class="output-wrap" id="ak-output-wrap">
+        <div class="output-card">
+          <div class="output-topbar">
+            <div class="output-title" id="ak-out-title">Result</div>
+            <div class="topbar-right">
+              <button class="btn-copy" id="ak-copy-btn" onclick="akCopyOut()">Copy Text</button>
+            </div>
+          </div>
+          <div class="output-body" id="ak-out-body"></div>
+        </div>
+      </div>
+
+    </div><!-- /panel-aksaravora -->
+
+    <!-- ══ VOICEVORA ══ -->
+    <div class="tool-panel" id="panel-voicevora">
+      <div class="tool-header">
+        <div><div class="tool-title">Voice<em>Vora</em></div><div class="tool-subtitle">Character Voice Calibration</div></div>
+      </div>
+      <div class="coming-soon">
+        <div class="cs-icon">◎</div>
+        <div class="cs-title">Voice<em>Vora</em></div>
+        <div class="cs-desc">Kalibrasi "suara" karakter kamu — pola kalimat, diksi, ritme dialog. Supaya karakter A terasa beda dari karakter B di setiap halaman.</div>
+        <div class="cs-output">Output ke InkVora: <span>VoiceProfile</span></div>
+      </div>
+    </div>
+
+    <!-- ══ ARCHITECTVORA ══ -->
+    <div class="tool-panel" id="panel-architectvora">
+      <div class="tool-header">
+        <div><div class="tool-title">Architect<em>Vora</em></div><div class="tool-subtitle">Story Structure Planning</div></div>
+      </div>
+      <div class="coming-soon">
+        <div class="cs-icon">⬡</div>
+        <div class="cs-title">Architect<em>Vora</em></div>
+        <div class="cs-desc">Bangun struktur ceritamu dari genre dan premis. Three-act, hero's journey, dan pola lainnya — disesuaikan ke ceritamu.</div>
+        <div class="cs-output">Output ke InkVora: <span>StoryArcAct[]</span></div>
+      </div>
+    </div>
+
+    <!-- ══ SUMMARYVORA ══ -->
+    <div class="tool-panel" id="panel-summaryvora">
+      <div class="tool-header">
+        <div><div class="tool-title">Summary<em>Vora</em></div><div class="tool-subtitle">Chapter Finalization</div></div>
+      </div>
+      <div class="coming-soon">
+        <div class="cs-icon">◎</div>
+        <div class="cs-title">Summary<em>Vora</em></div>
+        <div class="cs-desc">Paste chapter yang sudah selesai. SummaryVora ekstrak key events, character moments, dan plot threads — jadi living story bible kamu.</div>
+        <div class="cs-output">Output ke InkVora: <span>ChapterSummary</span></div>
+      </div>
+    </div>
+
+    <!-- ══ CLASHVORA ══ -->
+    <div class="tool-panel" id="panel-clashvora">
+      <div class="tool-header">
+        <div><div class="tool-title">Clash<em>Vora</em></div><div class="tool-subtitle">Scene & Conflict Simulation</div></div>
+      </div>
+      <div class="coming-soon">
+        <div class="cs-icon">⬡</div>
+        <div class="cs-title">Clash<em>Vora</em></div>
+        <div class="cs-desc">Masukkan dua karakter dan situasinya. ClashVora simulate bagaimana mereka bereaksi satu sama lain — dan hasilkan scene draft sebagai starting point.</div>
+        <div class="cs-output">Output ke InkVora: <span>SceneDraft</span></div>
+      </div>
+    </div>
+
+    <!-- ══ WORLDVORA ══ -->
+    <div class="tool-panel" id="panel-worldvora">
+      <div class="tool-header">
+        <div><div class="tool-title">World<em>Vora</em></div><div class="tool-subtitle">Worldbuilding Generation</div></div>
+      </div>
+      <div class="coming-soon">
+        <div class="cs-icon">◎</div>
+        <div class="cs-title">World<em>Vora</em></div>
+        <div class="cs-desc">Dari setting dan genre, bangun lore duniamu — geografi, sistem kekuasaan, budaya, sejarah. Setiap entry tersimpan sebagai building block ceritamu.</div>
+        <div class="cs-output">Output ke InkVora: <span>LoreEntry[]</span></div>
+      </div>
+    </div>
+
+    <footer>
+      <div class="footer-inner">
+        <div class="footer-top">
+          <span class="footer-brand">Dream<em>Vora</em></span>
+          <a href="https://voralab.id" target="_blank" class="footer-link">voralab.id ↗</a>
+        </div>
+        <p class="footer-disclaimer">DreamVora is a pre-writing suite for fiction writers. All tools are intended as creative aids — AI outputs are starting points, not final answers. Personality systems are used as narrative frameworks, not scientific assessments.</p>
+        <div class="footer-bottom">
+          <span>© 2026 VoraLab · PT Modular Media Asia</span>
+          <span class="footer-grace">Built by the grace of God 🤲</span>
+        </div>
+      </div>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+const apiKey = "";
+const MODEL  = "gemini-2.5-flash-preview-05-20";
+
+const SELECTORS = {
+  "MBTI": "s-mbti", "Enneagram": "s-enn", "Zodiac Barat": "s-zodiac",
+  "Shio": "s-shio", "Weton Jawa": "s-weton", "Golongan Darah": "s-blood",
+  "D&D Alignment": "s-align", "Jungian Archetype": "s-arch",
+  "Big Five": "s-b5", "Love Language": "s-ll",
+  "Attachment Style": "s-att", "Element": "s-elem",
+};
+
+/* ── SHELL: TOOL SWITCHER ── */
+function switchTool(tool) {
+  document.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item, .mobile-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(`panel-${tool}`).classList.add('active');
+  document.querySelectorAll(`[data-tool="${tool}"]`).forEach(b => b.classList.add('active'));
+}
+
+/* ── CHARAVORA: TAB SWITCHER ── */
+function switchTab(t) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) =>
+    b.classList.toggle('active', (i===0&&t==='build')||(i===1&&t==='reverse'))
+  );
+  document.getElementById('panel-build').classList.toggle('active', t==='build');
+  document.getElementById('panel-reverse').classList.toggle('active', t==='reverse');
+  document.getElementById('output-wrap').classList.remove('visible');
+}
+
+function getSelections() {
+  const r = {};
+  for (const [lbl, id] of Object.entries(SELECTORS)) {
+    const v = document.getElementById(id).value;
+    if (v) r[lbl] = v;
+  }
+  return r;
+}
+
+function updateCount() {
+  const n = Object.keys(getSelections()).length;
+  document.getElementById('sel-count').innerHTML =
+    `<span>${n}</span> sistem dipilih${n===0?' — pilih minimal 1':''}`;
+}
+
+function renderBadges(sel) {
+  const row = document.getElementById('badge-row');
+  row.innerHTML = '';
+  for (const [sys, val] of Object.entries(sel)) {
+    const d = document.createElement('span');
+    d.className = 'badge';
+    d.textContent = `${sys}: ${val}`;
+    row.appendChild(d);
+  }
+}
+
+function md2html(text) {
+  const lines = text.split('\n'), out = [];
+  let inUl = false;
+  for (let raw of lines) {
+    let line = raw
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/`(.+?)`/g, '<code>$1</code>');
+    if (/^#{1,3} /.test(raw)) {
+      if (inUl) { out.push('</ul>'); inUl = false; }
+      out.push(`<h2>${raw.replace(/^#{1,3} /, '')}</h2>`);
+    } else if (/^[-•*] /.test(raw)) {
+      if (!inUl) { out.push('<ul>'); inUl = true; }
+      out.push(`<li>${line.replace(/^[-•*] /, '')}</li>`);
+    } else if (raw.trim() === '') {
+      if (inUl) { out.push('</ul>'); inUl = false; }
+    } else {
+      if (inUl) { out.push('</ul>'); inUl = false; }
+      out.push(`<p>${line}</p>`);
+    }
+  }
+  if (inUl) out.push('</ul>');
+  return out.join('');
+}
+
+/* ── SHARED: GEMINI CALL ── */
+async function gemini(prompt) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
+  const res = await fetch(url, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 1.0, maxOutputTokens: 3000 }
+    })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.candidates[0].content.parts[0].text;
+}
+
+/* ── CHARAVORA: BUILD ── */
+async function buildChar() {
+  const sel = getSelections();
+  if (!Object.keys(sel).length) { alert('Pilih minimal satu sistem dulu.'); return; }
+  const name    = document.getElementById('char-name').value.trim();
+  const context = document.getElementById('txt-ctx').value.trim();
+  setLoad('build', true);
+  const sysList  = Object.entries(sel).map(([k,v]) => `- ${k}: ${v}`).join('\n');
+  const nameLine = name    ? `Nama karakter: **${name}**\n` : '';
+  const ctxLine  = context ? `\nKonteks tambahan dari penulis: ${context}` : '';
+  const prompt = `Kamu adalah character psychology synthesizer untuk fiction writers. Tugasmu: synthesize kombinasi sistem kepribadian ini menjadi karakter fiksi yang kaya, nuanced, dan terasa hidup.\n\n${nameLine}Sistem kepribadian yang dipilih:\n${sysList}${ctxLine}\n\nBuat character profile dengan struktur berikut. Tulis dengan kedalaman novelis—bukan textbook. Cari TENSIONS dan CONTRADICTIONS antar sistem, karena di situlah karakter menjadi menarik.\n\n## Core Essence\n2–3 paragraf tentang siapa karakter ini di inti terdalamnya. Fokus pada apa yang membuat KOMBINASI SPESIFIK ini unik — ketegangan, kontradiksi, dan sinergi antar sistem yang dipilih.\n\n## Kekuatan (Story-Relevant)\nApa yang mereka kuasai. Bagaimana mereka hadir secara powerful dalam narasi. Spesifik, bukan generik.\n\n## Luka & Blind Spot\nCore wound mereka. Apa yang tidak bisa mereka lihat tentang diri sendiri. Di mana mereka self-sabotage tanpa sadar.\n\n## Cara Bicara & Gaya Komunikasi\nBagaimana mereka berbicara — pola kalimat, apa yang mereka katakan vs. maksud sebenarnya, bagaimana mereka handle konflik verbal. Beri contoh kalimat kalau memungkinkan.\n\n## Ketakutan Terdalam\nBukan ketakutan permukaan. Yang di bawahnya. Yang bahkan mereka sendiri mungkin tidak akui.\n\n## Motivasi & Desire\nApa yang mereka pikir mereka inginkan vs. apa yang sebenarnya mereka butuhkan. Bedakan keduanya.\n\n## Shadow Side\nVersi gelap karakter ini. Apa yang terjadi ketika pola terburuk mereka take over.\n\n## Arc Potential\n3 kemungkinan character arc — sertakan growth arc, tragic arc, dan satu yang ambiguous/grey. Masing-masing 2–3 kalimat.\n\n## Titik Kontradiksi\nMinimal 4 internal conflict yang membuat mereka compelling. Bukan klise — cari yang spesifik dari kombinasi sistem ini.\n\n## Dalam Konflik & Tekanan\nBagaimana perilaku konkret mereka ketika under pressure atau di scene konflik besar. Detail dan vivid.\n\nGunakan bahasa Indonesia di mana natural. Mix dengan English untuk istilah teknis psychology jika perlu.`;
+  try {
+    const result = await gemini(prompt);
+    showOutput(name ? `${name} — Character Profile` : 'Character Profile', sel, result);
+  } catch (e) {
+    showOutputRaw(`<p style="color:var(--orange)">⚠ Error: ${e.message}</p>`);
+  }
+  setLoad('build', false);
+}
+
+/* ── CHARAVORA: REVERSE ── */
+async function reverseMatch() {
+  const desc = document.getElementById('txt-rev').value.trim();
+  if (!desc) { alert('Tulis deskripsi karakter dulu.'); return; }
+  setLoad('rev', true);
+  const prompt = `Kamu adalah character psychology classifier untuk fiction writers. Berdasarkan deskripsi karakter berikut, identifikasi best match di setiap sistem kepribadian.\n\nDeskripsi karakter:\n"${desc}"\n\nRespond dengan struktur berikut:\n\n## System Matches\n\nUntuk setiap sistem di bawah, berikan: match terbaik + confidence (🟢 High / 🟡 Medium / 🔴 Low) + reasoning 1–2 kalimat.\n\n- **MBTI**: \n- **Enneagram** (sertakan wing kalau bisa):\n- **Zodiac Barat**:\n- **Shio**:\n- **Weton Jawa** (fokus pada energi pasaran kalau hari tidak jelas):\n- **Golongan Darah**:\n- **D&D Alignment**:\n- **Jungian Archetype**:\n- **Attachment Style**:\n- **Big Five** (trait paling dominan):\n- **Love Language** (yang paling dibutuhkan, bukan diberikan):\n\n## Mengapa Kombinasi Ini Koheren\nSatu paragraf — jelaskan bagaimana semua match di atas membentuk portrait psikologis yang utuh. Cari connecting thread.\n\n## Di Mana Sistemnya Kurang Pas\nJujur tentang trait mana dalam deskripsi yang tidak fit sempurna ke sistem mana pun.\n\n## 3 Sistem Paling Akurat untuk Karakter Ini\nKalau penulis hanya mau pakai 3 lens, pakai yang mana? Kenapa?\n\nGunakan bahasa Indonesia. Mix English untuk istilah teknis.`;
+  try {
+    const result = await gemini(prompt);
+    showOutput('Reverse Match Result', {}, result);
+  } catch (e) {
+    showOutputRaw(`<p style="color:var(--orange)">⚠ Error: ${e.message}</p>`);
+  }
+  setLoad('rev', false);
+}
+
+function showOutput(title, sel, markdown) {
+  document.getElementById('out-title').textContent = title;
+  renderBadges(sel);
+  document.getElementById('out-body').innerHTML = md2html(markdown);
+  const wrap = document.getElementById('output-wrap');
+  wrap.classList.add('visible');
+  wrap.style.display = 'block';
+  setTimeout(() => wrap.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+}
+
+function showOutputRaw(html) {
+  document.getElementById('out-body').innerHTML = html;
+  const wrap = document.getElementById('output-wrap');
+  wrap.classList.add('visible'); wrap.style.display = 'block';
+}
+
+function setLoad(mode, on) {
+  const btn  = document.getElementById(`btn-${mode}`);
+  const lbl  = document.getElementById(`btn-${mode}-lbl`);
+  const dots = document.getElementById(`dots-${mode}`);
+  btn.disabled = on; lbl.style.display = on?'none':''; dots.style.display = on?'flex':'none';
+}
+
+function clearBuild() {
+  Object.values(SELECTORS).forEach(id => document.getElementById(id).value = '');
+  document.getElementById('char-name').value = '';
+  document.getElementById('txt-ctx').value   = '';
+  document.getElementById('output-wrap').style.display = 'none';
+  updateCount();
+}
+
+function copyOut(btn) {
+  navigator.clipboard.writeText(document.getElementById('out-body').innerText).then(() => {
+    btn.textContent = '✓ Copied';
+    setTimeout(() => btn.textContent = 'Copy Text', 2000);
+  });
+}
+
+function exportTxt() {
+  const title  = document.getElementById('out-title').textContent;
+  const badges = [...document.querySelectorAll('#badge-row .badge')].map(b => b.textContent).join(' | ');
+  const body   = document.getElementById('out-body').innerText;
+  const date   = new Date().toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
+  const content = [
+    '═══════════════════════════════════════',
+    `  DREAMVORA · CHARAVORA — ${title.toUpperCase()}`,
+    '═══════════════════════════════════════',
+    badges ? `\nSistem: ${badges}` : '',
+    `Generated: ${date}`,
+    '\n───────────────────────────────────────\n',
+    body,
+    '\n───────────────────────────────────────',
+    'DreamVora · VoraLab (voralab.id)',
+  ].filter(Boolean).join('\n');
+  const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  Object.assign(document.createElement('a'), { href: url, download: `charavora-${slug}.txt` }).click();
+  URL.revokeObjectURL(url);
+}
+
+/* ══════════════ AKSARAVORA ══════════════ */
+
+function akSwitchTab(t) {
+  document.querySelectorAll('#ak-tabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === t));
+  document.querySelectorAll('#panel-aksaravora .panel').forEach(p => p.classList.toggle('active', p.id === `ak-panel-${t}`));
+  document.getElementById('ak-output-wrap').classList.remove('visible');
+  document.getElementById('ak-output-wrap').style.display = 'none';
+  document.getElementById('ak-comp-wrap').classList.remove('visible');
+  document.getElementById('ak-comp-wrap').style.display = 'none';
+}
+
+function akCharCount(inputId, countId) {
+  const text = document.getElementById(inputId).value.trim();
+  const n = text ? text.split(/\s+/).length : 0;
+  document.getElementById(countId).textContent = `${n} kata`;
+}
+
+function setAkLoad(key, on) {
+  const btn  = document.getElementById(`ak-btn-${key}`);
+  const lbl  = document.getElementById(`ak-btn-${key}-lbl`);
+  const dots = document.getElementById(`ak-dots-${key}`);
+  btn.disabled = on; lbl.style.display = on ? 'none' : ''; dots.style.display = on ? 'flex' : 'none';
+}
+
+function akShowOutput(title, markdown) {
+  document.getElementById('ak-out-title').textContent = title;
+  document.getElementById('ak-out-body').innerHTML = md2html(markdown);
+  const wrap = document.getElementById('ak-output-wrap');
+  wrap.classList.add('visible'); wrap.style.display = 'block';
+  setTimeout(() => wrap.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+}
+
+function akShowError(msg) {
+  document.getElementById('ak-out-title').textContent = 'Error';
+  document.getElementById('ak-out-body').innerHTML = `<p style="color:var(--orange)">⚠ ${msg}</p>`;
+  const wrap = document.getElementById('ak-output-wrap');
+  wrap.classList.add('visible'); wrap.style.display = 'block';
+}
+
+function akCopyOut() {
+  navigator.clipboard.writeText(document.getElementById('ak-out-body').innerText).then(() => {
+    const btn = document.getElementById('ak-copy-btn');
+    btn.textContent = '✓ Copied';
+    setTimeout(() => btn.textContent = 'Copy Text', 2000);
+  });
+}
+
+/* ── PARAPHRASE ── */
+const AK_MODE_DESC = {
+  Standard: 'seimbang antara natural dan variasi kata',
+  Fluency: 'fokus membuat kalimat lebih lancar dan mengalir saat dibaca',
+  Formal: 'gaya bahasa resmi dan profesional',
+  Academic: 'gaya akademik dengan istilah baku dan struktur formal',
+  Simple: 'sederhanakan kalimat supaya mudah dipahami siapa saja',
+  Creative: 'lebih ekspresif, variatif, dan berani bermain dengan struktur kalimat',
+  Expand: 'perluas dengan detail tambahan tanpa mengubah makna inti',
+  Shorten: 'persingkat sebanyak mungkin tanpa menghilangkan makna inti',
+};
+async function akParaphrase() {
+  const text = document.getElementById('ak-par-input').value.trim();
+  if (!text) { alert('Tempel teks yang mau di-paraphrase dulu.'); return; }
+  const mode = document.getElementById('ak-par-mode').value;
+  const intensity = document.getElementById('ak-par-intensity').value;
+  setAkLoad('par', true);
+  const prompt = `Kamu adalah asisten penulisan profesional. Paraphrase (tulis ulang) teks berikut.\n\nMode: "${mode}" — artinya ${AK_MODE_DESC[mode]}.\nTingkat sinonim: "${intensity}" (Rendah = minimal ubah kata hanya struktur kalimat, Sedang = campuran, Tinggi = banyak kata diganti sinonim).\n\nAturan: pertahankan makna asli sepenuhnya, jangan menambah atau menghilangkan informasi. Balas HANYA dengan hasil paraphrase, tanpa komentar pembuka, tanpa heading, tanpa tanda kutip pembuka/penutup.\n\nTeks asli:\n"""\n${text}\n"""`;
+  try {
+    const result = await gemini(prompt);
+    akShowOutput(`Paraphrase — ${mode}`, result);
+  } catch (e) { akShowError(e.message); }
+  setAkLoad('par', false);
+}
+
+/* ── SUMMARIZE ── */
+async function akSummarize() {
+  const text = document.getElementById('ak-sum-input').value.trim();
+  if (!text) { alert('Tempel teks yang mau diringkas dulu.'); return; }
+  const length = document.getElementById('ak-sum-length').value;
+  setAkLoad('sum', true);
+  const lenDesc = { Pendek: '2-3 kalimat', Sedang: '1 paragraf (sekitar 5-6 kalimat)', Panjang: 'beberapa paragraf dengan poin-poin penting' }[length];
+  const prompt = `Ringkas teks berikut menjadi versi "${length}" (${lenDesc}). Pertahankan informasi inti dan nada asli teks. Balas hanya dengan hasil ringkasan dalam Bahasa Indonesia, tanpa komentar pembuka.\n\nTeks:\n"""\n${text}\n"""`;
+  try {
+    const result = await gemini(prompt);
+    akShowOutput(`Summary — ${length}`, result);
+  } catch (e) { akShowError(e.message); }
+  setAkLoad('sum', false);
+}
+
+/* ── TONE ── */
+async function akTone() {
+  const text = document.getElementById('ak-tone-input').value.trim();
+  if (!text) { alert('Tempel teks yang mau diubah nadanya dulu.'); return; }
+  const tone = document.getElementById('ak-tone-target').value;
+  setAkLoad('tone', true);
+  const prompt = `Ubah gaya/nada tulisan berikut menjadi "${tone}" tanpa mengubah makna atau informasi inti. Balas hanya dengan hasil tulisan yang sudah diubah nadanya, tanpa komentar pembuka.\n\nTeks asli:\n"""\n${text}\n"""`;
+  try {
+    const result = await gemini(prompt);
+    akShowOutput(`Tone — ${tone}`, result);
+  } catch (e) { akShowError(e.message); }
+  setAkLoad('tone', false);
+}
+
+/* ── TRANSLATE ── */
+async function akTranslate() {
+  const text = document.getElementById('ak-trans-input').value.trim();
+  if (!text) { alert('Tempel teks yang mau diterjemahkan dulu.'); return; }
+  const lang = document.getElementById('ak-trans-lang').value;
+  const register = document.getElementById('ak-trans-register').value;
+  setAkLoad('trans', true);
+  const regDesc = register === 'Formal' ? 'baku dan sopan' : 'sehari-hari dan luwes';
+  const prompt = `Terjemahkan teks berikut ke Bahasa ${lang} dengan register "${register}" (${regDesc}). Pertahankan makna dan nuansa asli semaksimal mungkin. Balas hanya dengan hasil terjemahan, tanpa teks asli, tanpa komentar.\n\nTeks:\n"""\n${text}\n"""`;
+  try {
+    const result = await gemini(prompt);
+    akShowOutput(`Translate — ${lang}`, result);
+  } catch (e) { akShowError(e.message); }
+  setAkLoad('trans', false);
+}
+
+/* ── GRAMMAR CHECKER ── */
+async function akGrammar() {
+  const text = document.getElementById('ak-gram-input').value.trim();
+  if (!text) { alert('Tempel teks yang mau dicek grammar-nya dulu.'); return; }
+  setAkLoad('gram', true);
+  const prompt = `Kamu adalah proofreader teks (deteksi otomatis bahasanya). Periksa teks berikut untuk kesalahan grammar, ejaan, tanda baca, dan kejanggalan kalimat.\n\nFormat jawaban dalam Markdown:\n\n## Ringkasan\nSatu kalimat ringkasan jumlah & jenis masalah yang ditemukan (atau bilang "Tidak ditemukan kesalahan berarti" kalau bersih).\n\n## Temuan\nUntuk setiap masalah (maksimal 15 paling signifikan):\n- **Asli:** "<potongan kalimat asli>" → **Saran:** "<versi diperbaiki>" — <alasan singkat>\n\n## Versi Final\nTulis ulang versi teks yang sudah dikoreksi penuh.\n\nTeks:\n"""\n${text}\n"""`;
+  try {
+    const result = await gemini(prompt);
+    akShowOutput('Grammar Check', result);
+  } catch (e) { akShowError(e.message); }
+  setAkLoad('gram', false);
+}
+
+/* ── WORD COUNTER (instant, no API) ── */
+function akWordCount() {
+  const text = document.getElementById('ak-wc-input').value;
+  const trimmed = text.trim();
+  const words = trimmed ? trimmed.split(/\s+/).length : 0;
+  const charsWith = text.length;
+  const charsNo = text.replace(/\s/g, '').length;
+  const sentences = trimmed ? (trimmed.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || []).filter(s => s.trim()).length : 0;
+  const paragraphs = trimmed ? trimmed.split(/\n\s*\n/).filter(p => p.trim()).length : 0;
+  const readMin = words ? Math.max(1, Math.ceil(words / 200)) : 0;
+  document.getElementById('ak-wc-words').textContent   = words;
+  document.getElementById('ak-wc-charsw').textContent   = charsWith;
+  document.getElementById('ak-wc-charsno').textContent  = charsNo;
+  document.getElementById('ak-wc-sent').textContent     = sentences;
+  document.getElementById('ak-wc-para').textContent     = paragraphs;
+  document.getElementById('ak-wc-read').textContent     = words ? `~${readMin} menit` : '—';
+}
+
+/* ── COMPOSITION ANALYZER ── */
+const COMP_COLORS = {
+  dialog: '#e8ff47', aksi: '#ff6b35', narasi: '#4fd1c5',
+  deskripsi: '#a78bfa', monolog_internal: '#f472b6', lainnya: '#555',
+};
+const COMP_LABELS = {
+  dialog: 'Dialog', aksi: 'Aksi', narasi: 'Narasi',
+  deskripsi: 'Deskripsi', monolog_internal: 'Monolog Internal', lainnya: 'Lainnya',
+};
+async function akComposition() {
+  const text = document.getElementById('ak-comp-input').value.trim();
+  if (!text) { alert('Tempel scene/chapter yang mau dianalisis dulu.'); return; }
+  if (text.split(/\s+/).length < 30) { alert('Teks terlalu pendek buat dianalisis akurat — coba minimal beberapa paragraf.'); return; }
+  setAkLoad('comp', true);
+  const prompt = `Kamu adalah analis komposisi teks naratif untuk fiction writers. Baca teks berikut dan klasifikasikan isinya ke kategori: dialog, aksi, narasi, deskripsi, monolog_internal, lainnya.\n\nHitung estimasi persentase total kata untuk masing-masing kategori dari keseluruhan teks (total harus 100).\n\nTeks:\n"""\n${text}\n"""\n\nPENTING: Balas HANYA dengan JSON valid, tanpa markdown code fence, tanpa teks lain apapun. Format persis seperti ini:\n{"breakdown":{"dialog":0,"aksi":0,"narasi":0,"deskripsi":0,"monolog_internal":0,"lainnya":0},"dominant":"kategori_paling_dominan","analysis":"1-2 paragraf analisis gaya penulisan berdasarkan komposisi ini, dalam Bahasa Indonesia, santai tapi insightful","suggestion":"1 saran konkret buat penulis berdasarkan komposisi ini"}`;
+  try {
+    const raw = await gemini(prompt);
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const data = JSON.parse(clean);
+    akRenderComposition(data);
+  } catch (e) {
+    akShowError('Gagal menganalisis komposisi: ' + e.message);
+  }
+  setAkLoad('comp', false);
+}
+function akRenderComposition(data) {
+  const bd = data.breakdown || {};
+  const bar = document.getElementById('ak-comp-bar');
+  const legend = document.getElementById('ak-comp-legend');
+  bar.innerHTML = ''; legend.innerHTML = '';
+  Object.entries(bd).forEach(([key, val]) => {
+    if (!val) return;
+    const seg = document.createElement('div');
+    seg.style.width = `${val}%`;
+    seg.style.background = COMP_COLORS[key] || '#555';
+    seg.title = `${COMP_LABELS[key] || key}: ${val}%`;
+    bar.appendChild(seg);
+
+    const item = document.createElement('div');
+    item.className = 'comp-legend-item';
+    item.innerHTML = `<span class="comp-dot" style="background:${COMP_COLORS[key] || '#555'}"></span>${COMP_LABELS[key] || key} <strong>${val}%</strong>`;
+    legend.appendChild(item);
+  });
+  document.getElementById('ak-comp-dominant').textContent = COMP_LABELS[data.dominant] || data.dominant || '—';
+  document.getElementById('ak-comp-analysis').innerHTML = md2html(data.analysis || '');
+  document.getElementById('ak-comp-suggestion').innerHTML = md2html(data.suggestion || '');
+  const wrap = document.getElementById('ak-comp-wrap');
+  wrap.classList.add('visible'); wrap.style.display = 'block';
+  setTimeout(() => wrap.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+}
+</script>
+
+<!-- ══ UNIVERSAL BRIDGE SCRIPT ══ -->
+<script>
+(function () {
+  const BRIDGE_ENDPOINT = "https://ink.voralab.id/api/bridge/push";
+  const INKVORA_HUB     = "https://ink.voralab.id";
+
+  /* Config registry — extend this when new tools are added */
+  const TOOL_CONFIGS = {
+    charavora: {
+      type: "character",
+      keyMap: {
+        "MBTI": "mbti", "Enneagram": "enneagram", "Zodiac Barat": "zodiac",
+        "Shio": "shio", "Weton Jawa": "weton", "Golongan Darah": "blood_type",
+        "D&D Alignment": "alignment", "Jungian Archetype": "archetype",
+        "Big Five": "big_five", "Love Language": "love_language",
+        "Attachment Style": "attachment_style", "Element": "element",
+      }
+    },
+    /* voicevora: { type: "voice_profile", keyMap: { ... } },   ← add when ready */
+    /* architectvora: { type: "story_arc", keyMap: { ... } },  */
+    /* summaryvora: { type: "chapter_summary", keyMap: {} },   */
+    /* clashvora: { type: "scene_draft", keyMap: {} },         */
+    /* worldvora: { type: "lore", keyMap: {} },                */
+  };
+
+  let _last = null;
+
+  const _origShowOutput = window.showOutput;
+  window.showOutput = function (title, sel, markdown) {
+    _origShowOutput(title, sel, markdown);
+    _last = (sel && Object.keys(sel).length)
+      ? { name: document.getElementById('char-name')?.value?.trim() || '', sel, markdown, tool: 'charavora' }
+      : null;
+    _renderBridgeUI();
+  };
+
+  function _renderBridgeUI() {
+    const topRight = document.querySelector(".output-topbar .topbar-right");
+    if (!topRight) return;
+
+    let btn = document.getElementById("dv-save-btn");
+    if (!btn) {
+      btn = document.createElement("button");
+      btn.id = "dv-save-btn"; btn.className = "btn-copy";
+      btn.style.cssText = "background:var(--lime);color:#0a0a0a;border:none;font-weight:700;";
+      btn.textContent = "Save to InkVora";
+      btn.onclick = _saveToBridge;
+      topRight.appendChild(btn);
+    }
+    btn.style.display = _last ? "" : "none";
+
+    let res = document.getElementById("dv-save-result");
+    if (!res) {
+      res = document.createElement("div");
+      res.id = "dv-save-result";
+      res.style.cssText = "margin-top:.5rem;font-size:.8rem;";
+      const topbar = document.querySelector(".output-topbar");
+      topbar?.parentNode?.insertBefore(res, topbar.nextSibling);
+    }
+    res.innerHTML = "";
+  }
+
+  async function _saveToBridge() {
+    if (!_last) return;
+    const btn = document.getElementById("dv-save-btn");
+    const res = document.getElementById("dv-save-result");
+    btn.disabled = true; btn.textContent = "Saving…";
+
+    const cfg = TOOL_CONFIGS[_last.tool];
+    const payload = { source: _last.tool, type: cfg.type, name: _last.name || "Untitled", profile_raw: _last.markdown };
+    for (const [label, key] of Object.entries(cfg.keyMap)) payload[key] = _last.sel[label] || null;
+
+    try {
+      const r = await fetch(BRIDGE_ENDPOINT, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: cfg.type, payload }),
+      });
+      const json = await r.json();
+      if (!json?.success) throw new Error(json?.error || "Push failed");
+      res.innerHTML =
+        `<a href="${json.data.url}" target="_blank" rel="noopener" style="color:var(--lime);font-weight:700;text-decoration:none;">Open in InkVora →</a>` +
+        `<span style="color:var(--muted);margin-left:.5rem;">Link valid for 10 minutes.</span>`;
+    } catch (e) {
+      res.innerHTML = `<span style="color:var(--orange);">Couldn't save: ${e.message}</span>`;
+    } finally {
+      btn.disabled = false; btn.textContent = "Save to InkVora";
+    }
+  }
+})();
+</script>
+
+</body>
+</html>

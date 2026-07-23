@@ -1,0 +1,2521 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CharaVora — VoraLab</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap"
+    rel="stylesheet">
+  <style>
+    /* ── TOKENS ── */
+    :root {
+      --bg: #0a0a0a;
+      --surface: #111;
+      --surface2: #1a1a1a;
+      --border: #252525;
+      --border2: #333;
+      --lime: #e8ff47;
+      --orange: #ff6b35;
+      --lime-ink: var(--lime);
+      /* text-safe lime — auto-darkens in light mode for contrast */
+      --text: #efefef;
+      --muted: #555;
+      --muted2: #888;
+      --display: 'Syne', sans-serif;
+      --mono: 'DM Mono', monospace;
+    }
+
+    :root.light {
+      --bg: #f5f4ef;
+      --surface: #fff;
+      --surface2: #f0efe9;
+      --border: #e0ddd5;
+      --border2: #ccc9bf;
+      --lime-ink: #5c6b00;
+      --text: #1a1a1a;
+      --muted: #bbb;
+      --muted2: #777;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--display);
+      min-height: 100vh;
+      padding: 28px 24px 64px;
+      max-width: 900px;
+      margin: 0 auto
+    }
+
+    /* ── HEADER ── */
+    header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 12px
+    }
+
+    .wordmark {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1
+    }
+
+    .wordmark em {
+      color: var(--lime-ink);
+      font-style: normal
+    }
+
+    .sub {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      margin-top: 5px
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .icon-btn {
+      background: none;
+      border: 1px solid var(--border2);
+      color: var(--muted2);
+      font-size: 13px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all .15s;
+      font-family: var(--mono)
+    }
+
+    .icon-btn:hover {
+      color: var(--text);
+      border-color: var(--muted2)
+    }
+
+    .icon-btn.active {
+      color: var(--lime-ink);
+      border-color: rgba(232, 255, 71, .35)
+    }
+
+    /* ── SETTINGS PANEL ── */
+    .settings-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 20px;
+      display: none
+    }
+
+    .settings-panel.open {
+      display: block
+    }
+
+    .settings-title {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 12px
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px
+    }
+
+    .settings-note {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 10px;
+      line-height: 1.6
+    }
+
+    .settings-note span {
+      color: var(--lime-ink)
+    }
+
+    /* ── TABS ── */
+    .tabs {
+      display: flex;
+      gap: 2px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 3px;
+      width: fit-content;
+      margin-bottom: 32px;
+      flex-wrap: wrap
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--muted2);
+      font-family: var(--display);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 9px 22px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all .15s
+    }
+
+    .tab-btn.active {
+      background: var(--lime);
+      color: #0a0a0a
+    }
+
+    .tab-btn:hover:not(.active) {
+      color: var(--text);
+      background: var(--surface2)
+    }
+
+    .panel {
+      display: none
+    }
+
+    .panel.active {
+      display: block
+    }
+
+    /* ── FORM ELEMENTS ── */
+    .sec-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      margin-bottom: 14px
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px
+    }
+
+    .field-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted2);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    .sys-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--border2);
+      flex-shrink: 0
+    }
+
+    .select-wrap {
+      position: relative
+    }
+
+    .select-wrap::after {
+      content: '▾';
+      position: absolute;
+      right: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+      font-size: 11px
+    }
+
+    select {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 9px 32px 9px 11px;
+      border-radius: 7px;
+      outline: none;
+      appearance: none;
+      cursor: pointer;
+      transition: border-color .15s
+    }
+
+    select:focus {
+      border-color: var(--lime-ink)
+    }
+
+    select option {
+      background: var(--surface)
+    }
+
+    textarea,
+    input[type=text],
+    input[type=password] {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 12px;
+      border-radius: 7px;
+      outline: none;
+      transition: border-color .15s;
+      line-height: 1.7;
+      resize: vertical
+    }
+
+    textarea:focus,
+    input[type=text]:focus,
+    input[type=password]:focus {
+      border-color: var(--lime-ink)
+    }
+
+    textarea::placeholder,
+    input::placeholder {
+      color: var(--muted)
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 20px 0
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px
+    }
+
+    .three-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px
+    }
+
+    .sel-count {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 18px
+    }
+
+    .sel-count span {
+      color: var(--lime-ink)
+    }
+
+    /* ── BUTTONS ── */
+    .actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 18px;
+      flex-wrap: wrap
+    }
+
+    .btn-primary {
+      background: var(--lime);
+      color: #0a0a0a;
+      border: none;
+      font-family: var(--display);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 11px 28px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: opacity .15s;
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .btn-primary:hover {
+      opacity: .85
+    }
+
+    .btn-primary:disabled {
+      opacity: .35;
+      cursor: not-allowed
+    }
+
+    .btn-ghost {
+      background: none;
+      color: var(--muted2);
+      border: 1px solid var(--border);
+      font-family: var(--display);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 10px 18px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all .15s
+    }
+
+    .btn-ghost:hover {
+      color: var(--text);
+      border-color: var(--border2)
+    }
+
+    .btn-outline-lime {
+      background: rgba(232, 255, 71, .06);
+      color: var(--lime-ink);
+      border: 1px solid rgba(232, 255, 71, .25);
+      font-family: var(--display);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 10px 18px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all .15s
+    }
+
+    .btn-outline-lime:hover {
+      background: rgba(232, 255, 71, .12)
+    }
+
+    .dots {
+      display: inline-flex;
+      gap: 3px;
+      align-items: center
+    }
+
+    .dots span {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #0a0a0a;
+      animation: pulse 1.2s ease-in-out infinite
+    }
+
+    .dots span:nth-child(2) {
+      animation-delay: .2s
+    }
+
+    .dots span:nth-child(3) {
+      animation-delay: .4s
+    }
+
+    @keyframes pulse {
+
+      0%,
+      80%,
+      100% {
+        transform: scale(.6);
+        opacity: .4
+      }
+
+      40% {
+        transform: scale(1);
+        opacity: 1
+      }
+    }
+
+    :root.light .dots span {
+      background: var(--text)
+    }
+
+    :root.light .icon-btn.active {
+      border-color: rgba(92, 107, 0, .35)
+    }
+
+    :root.light .badge {
+      border-color: rgba(92, 107, 0, .3);
+      background: rgba(92, 107, 0, .06)
+    }
+
+    :root.light .btn-outline-lime {
+      border-color: rgba(92, 107, 0, .35);
+      background: rgba(92, 107, 0, .06)
+    }
+
+    :root.light .btn-outline-lime:hover {
+      background: rgba(92, 107, 0, .12)
+    }
+
+    /* ── OUTPUT ── */
+    .output-wrap {
+      margin-top: 32px;
+      display: none
+    }
+
+    .output-wrap.visible {
+      display: block
+    }
+
+    .output-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden
+    }
+
+    .output-topbar {
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap
+    }
+
+    .output-title {
+      font-family: var(--mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: var(--lime-ink)
+    }
+
+    .topbar-right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap
+    }
+
+    .btn-copy {
+      background: var(--border);
+      color: var(--muted2);
+      border: none;
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 5px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all .15s
+    }
+
+    .btn-copy:hover {
+      background: var(--border2);
+      color: var(--text)
+    }
+
+    .badge-row {
+      padding: 12px 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .badge-row:empty {
+      display: none
+    }
+
+    .badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 3px 9px;
+      border-radius: 4px;
+      border: 1px solid var(--border2);
+      color: var(--lime-ink);
+      letter-spacing: .5px;
+      background: rgba(232, 255, 71, .04)
+    }
+
+    .output-body {
+      padding: 26px 22px
+    }
+
+    .output-body h2 {
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      color: var(--lime-ink);
+      margin: 28px 0 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .output-body h2:first-child {
+      margin-top: 0
+    }
+
+    .output-body p {
+      font-size: 14px;
+      line-height: 1.85;
+      color: var(--text);
+      margin-bottom: 10px;
+      opacity: .9
+    }
+
+    .output-body strong {
+      color: var(--lime-ink);
+      font-weight: 600
+    }
+
+    .output-body em {
+      color: var(--muted2);
+      font-style: italic
+    }
+
+    .output-body ul {
+      padding-left: 18px;
+      margin-bottom: 10px
+    }
+
+    .output-body ul li {
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--text);
+      margin-bottom: 4px;
+      opacity: .9
+    }
+
+    .carry-btn-wrap {
+      padding: 16px 18px;
+      border-top: 1px solid var(--border);
+      background: var(--surface2)
+    }
+
+    /* ── CHARACTER ROOM ── */
+    .room-source {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+      flex-wrap: wrap
+    }
+
+    .manual-form {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      display: none
+    }
+
+    .manual-form.open {
+      display: block
+    }
+
+    .chat-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      display: none
+    }
+
+    .chat-wrap.open {
+      display: flex;
+      flex-direction: column
+    }
+
+    .chat-header {
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .chat-char-info {
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    .chat-char-name {
+      font-weight: 700;
+      font-size: 14px
+    }
+
+    .chat-char-badge {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--muted);
+      border: 1px solid var(--border2);
+      padding: 2px 8px;
+      border-radius: 3px
+    }
+
+    .chat-messages {
+      height: 380px;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px
+    }
+
+    .chat-msg {
+      display: flex;
+      gap: 10px;
+      max-width: 85%
+    }
+
+    .chat-msg.user {
+      align-self: flex-end;
+      flex-direction: row-reverse
+    }
+
+    .chat-msg.ai {
+      align-self: flex-start
+    }
+
+    .chat-bubble {
+      padding: 11px 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.65
+    }
+
+    .chat-msg.user .chat-bubble {
+      background: rgba(232, 255, 71, .08);
+      border: 1px solid rgba(232, 255, 71, .18);
+      color: var(--text)
+    }
+
+    .chat-msg.ai .chat-bubble {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text)
+    }
+
+    .chat-msg.ai .chat-bubble em {
+      color: var(--muted2);
+      font-style: italic
+    }
+
+    .chat-input-row {
+      display: flex;
+      gap: 8px;
+      padding: 12px 14px;
+      border-top: 1px solid var(--border);
+      background: var(--surface2)
+    }
+
+    .chat-input-row textarea {
+      resize: none;
+      min-height: 44px;
+      max-height: 120px;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 10px 12px;
+      flex: 1
+    }
+
+    .chat-send {
+      background: var(--lime);
+      color: #0a0a0a;
+      border: none;
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 12px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity .15s;
+      align-self: flex-end;
+      white-space: nowrap
+    }
+
+    .chat-send:hover {
+      opacity: .85
+    }
+
+    .chat-send:disabled {
+      opacity: .35;
+      cursor: not-allowed
+    }
+
+    .typing-bubble {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 11px 14px;
+      border-radius: 12px;
+      display: inline-flex;
+      gap: 4px;
+      align-items: center
+    }
+
+    .typing-bubble span {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--muted2);
+      animation: pulse 1.2s ease-in-out infinite
+    }
+
+    .typing-bubble span:nth-child(2) {
+      animation-delay: .2s
+    }
+
+    .typing-bubble span:nth-child(3) {
+      animation-delay: .4s
+    }
+
+    .reverse-hint {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 8px;
+      line-height: 1.6
+    }
+
+    /* ── RELATE / VOICE / ARC SHARED ── */
+    .char-slot {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      flex: 1;
+      min-width: 240px
+    }
+
+    .slot-row {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 16px
+    }
+
+    .slot-title {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--lime-ink);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .arc-vs {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      padding: 0 4px;
+      flex-shrink: 0
+    }
+
+    .mini-select {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--muted2);
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 3px 6px;
+      border-radius: 5px;
+      outline: none;
+      cursor: pointer
+    }
+
+    .mini-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--muted2);
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 5px;
+      outline: none;
+      cursor: pointer;
+      transition: all .15s;
+      white-space: nowrap;
+      flex-shrink: 0
+    }
+
+    .mini-btn:hover {
+      color: var(--lime-ink);
+      border-color: rgba(232, 255, 71, .35)
+    }
+
+    .field-sm {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 10px
+    }
+
+    .field-sm label {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--muted2);
+      text-transform: uppercase;
+      letter-spacing: 1.2px
+    }
+
+    @media(max-width:640px) {
+      .slot-row {
+        flex-direction: column
+      }
+
+      .arc-vs {
+        padding: 2px 0
+      }
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      margin-top: 60px;
+      border-top: 1px solid var(--border);
+      padding: 24px 0 16px
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 10px
+    }
+
+    .footer-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .footer-brand {
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: -.5px
+    }
+
+    .footer-brand em {
+      color: var(--lime-ink);
+      font-style: normal
+    }
+
+    .footer-link {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted2);
+      text-decoration: none;
+      border-bottom: 1px solid var(--border2);
+      padding-bottom: 1px;
+      transition: color .15s
+    }
+
+    .footer-link:hover {
+      color: var(--lime-ink)
+    }
+
+    .footer-disclaimer {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 680px
+    }
+
+    .footer-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      padding-top: 8px;
+      border-top: 1px solid var(--border)
+    }
+
+    .footer-grace {
+      color: var(--muted2)
+    }
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:580px) {
+      body {
+        padding: 16px 14px 48px
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start
+      }
+
+      .two-col,
+      .three-col {
+        grid-template-columns: 1fr 1fr
+      }
+
+      .chat-messages {
+        height: 300px
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div>
+      <div class="wordmark">Chara<em>Vora</em></div>
+      <div class="sub">Character Builder · VoraLab</div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" onclick="toggleTheme()" id="theme-btn">☀ Light</button>
+      <button class="icon-btn" onclick="toggleSettings()" id="settings-btn">⚙ AI Settings</button>
+      <a href="https://voralab.id" target="_blank" class="icon-btn" style="text-decoration:none">voralab.id ↗</a>
+    </div>
+  </header>
+
+  <!-- ── SETTINGS PANEL ── -->
+  <div class="settings-panel" id="settings-panel">
+    <div class="settings-title">AI Provider Settings</div>
+    <div class="settings-grid">
+      <div class="field">
+        <div class="field-label">Provider</div>
+        <div class="select-wrap">
+          <select id="ai-provider" onchange="onProviderChange()">
+            <option value="gemini">Gemini (Default · Gratis di Canvas)</option>
+            <option value="openai">OpenAI</option>
+            <option value="claude">Claude (Anthropic)</option>
+            <option value="deepseek">Deepseek</option>
+          </select>
+        </div>
+      </div>
+      <div class="field" id="key-field" style="display:none">
+        <div class="field-label">API Key</div>
+        <input type="password" id="ai-key" placeholder="Masukkan API key kamu...">
+      </div>
+      <div class="field">
+        <div class="field-label">Model</div>
+        <div class="select-wrap">
+          <select id="ai-model">
+            <option value="gemini-2.5-flash-preview-05-20">Gemini 2.5 Flash (Recommended)</option>
+            <option value="gemini-2.5-pro-preview-06-05">Gemini 2.5 Pro</option>
+            <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="settings-note">
+      <span>Default (Gemini Canvas):</span> API key otomatis tersedia, gratis. BYOK: masukkan key kamu sendiri — hanya
+      dikirim langsung ke provider, tidak disimpan di server manapun.
+    </div>
+  </div>
+
+  <!-- ── TABS ── -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('library')">📚 Library</button>
+    <button class="tab-btn" onclick="switchTab('build')">⬡ Build Character</button>
+    <button class="tab-btn" onclick="switchTab('reverse')">◎ Reverse Lookup</button>
+    <button class="tab-btn" onclick="switchTab('room')">✦ Character Room</button>
+    <button class="tab-btn" onclick="switchTab('relate')">⇄ Relasi Karakter</button>
+    <button class="tab-btn" onclick="switchTab('voice')">🗣 Cek Konsistensi</button>
+    <button class="tab-btn" onclick="switchTab('arc')">⤳ Character Arc</button>
+  </div>
+
+  <!-- ══ LIBRARY ══ -->
+  <div class="panel active" id="panel-library">
+    <div class="sec-label" style="display:flex;align-items:center;justify-content:space-between">
+      <span>Karakter Tersimpan</span>
+      <button class="btn-ghost" onclick="clearLibrary()" style="padding:6px 12px;font-size:11px">🗑 Hapus Semua</button>
+    </div>
+    <p class="reverse-hint" style="margin-bottom:18px">Simpan karakter dari tab Build Character (tombol 💾 di output)
+      atau Character Room (tombol 💾 di header chat), biar bisa dipakai lintas fitur — terutama Relasi Karakter dan Cek
+      Konsistensi. Tersimpan di browser ini saja (localStorage), tidak terkirim ke server manapun.</p>
+    <div id="library-list"></div>
+  </div>
+
+  <!-- ══ BUILD CHARACTER ══ -->
+  <div class="panel" id="panel-build">
+
+    <div class="three-col" style="margin-bottom:12px">
+      <div class="field">
+        <div class="field-label"><span class="sys-dot"></span>Nama Karakter</div>
+        <input type="text" id="b-name" placeholder="Nama karakter (opsional)...">
+      </div>
+      <div class="field">
+        <div class="field-label"><span class="sys-dot"></span>Ras / Spesies</div>
+        <input type="text" id="b-race" placeholder="Manusia, Elf, Android... (opsional)">
+      </div>
+      <div class="field">
+        <div class="field-label"><span class="sys-dot"></span>Gender</div>
+        <div class="select-wrap">
+          <select id="b-gender">
+            <option value="">— skip —</option>
+            <option>Pria</option>
+            <option>Wanita</option>
+            <option>Non-biner</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-label" style="margin-top:8px">Sistem Kepribadian</div>
+    <div class="three-col">
+      <div class="field">
+        <div class="field-label"><span class="sys-dot"></span>MBTI</div>
+        <div class="select-wrap">
+          <select id="b-mbti" onchange="updateBuildCount()">
+            <option value="">— skip —</option>
+            <optgroup label="Analyst">
+              <option>INTJ</option>
+              <option>INTP</option>
+              <option>ENTJ</option>
+              <option>ENTP</option>
+            </optgroup>
+            <optgroup label="Diplomat">
+              <option>INFJ</option>
+              <option>INFP</option>
+              <option>ENFJ</option>
+              <option>ENFP</option>
+            </optgroup>
+            <optgroup label="Sentinel">
+              <option>ISTJ</option>
+              <option>ISFJ</option>
+              <option>ESTJ</option>
+              <option>ESFJ</option>
+            </optgroup>
+            <optgroup label="Explorer">
+              <option>ISTP</option>
+              <option>ISFP</option>
+              <option>ESTP</option>
+              <option>ESFP</option>
+            </optgroup>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label"><span class="sys-dot"></span>Zodiak</div>
+        <div class="select-wrap">
+          <select id="b-zodiac" onchange="updateBuildCount()">
+            <option value="">— skip —</option>
+            <option>Aries ♈</option>
+            <option>Taurus ♉</option>
+            <option>Gemini ♊</option>
+            <option>Cancer ♋</option>
+            <option>Leo ♌</option>
+            <option>Virgo ♍</option>
+            <option>Libra ♎</option>
+            <option>Scorpio ♏</option>
+            <option>Sagittarius ♐</option>
+            <option>Capricorn ♑</option>
+            <option>Aquarius ♒</option>
+            <option>Pisces ♓</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label"><span class="sys-dot"></span>Golongan Darah</div>
+        <div class="select-wrap">
+          <select id="b-blood" onchange="updateBuildCount()">
+            <option value="">— skip —</option>
+            <option>Gol. Darah A</option>
+            <option>Gol. Darah B</option>
+            <option>Gol. Darah AB</option>
+            <option>Gol. Darah O</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="field" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;gap:8px">
+        <div class="field-label" style="margin-bottom:0">
+          <span class="sys-dot"></span>Sistem Magic / Class
+          <span style="color:var(--muted);font-size:9px;text-transform:none;letter-spacing:0;font-style:italic">(opsional
+            — bebas, sesuai dunia ceritamu)</span>
+        </div>
+        <button type="button" class="mini-btn" onclick="randomizeMagicField()">🎲 Acak</button>
+      </div>
+      <input type="text" id="b-magic" oninput="updateBuildCount()"
+        placeholder="Misal: Elemental (Api), Battle Mage tier-3, Cultivation (Tahap Qi Condensation), Semblance, Alchemist Guild rank...">
+    </div>
+
+    <div class="sel-count" id="build-count"><span>0</span> sistem dipilih</div>
+
+    <div class="field" style="margin-bottom:6px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;gap:8px">
+        <div class="field-label" style="margin-bottom:0">
+          <span class="sys-dot"></span>Backstory / Konteks
+          <span
+            style="color:var(--muted);font-size:9px;text-transform:none;letter-spacing:0;font-style:italic">(opsional — isi draft kasar juga boleh, tombol Acak akan mengembangkannya)</span>
+        </div>
+        <button type="button" class="mini-btn" id="btn-rand-backstory" onclick="randomizeBackstoryField()">🎲 Acak</button>
+      </div>
+      <textarea id="b-ctx" rows="3" oninput="document.getElementById('b-ctx-seed-note').style.display='none'"
+        placeholder="Misal: villain utama di dunia steampunk, masa lalu sebagai tentara, kehilangan adiknya dalam perang..."></textarea>
+      <div id="b-ctx-seed-note" style="display:none;font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:6px;line-height:1.5;font-style:italic"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary" id="btn-build" onclick="buildChar()">
+        <span id="btn-build-lbl">Generate Character</span>
+        <div class="dots" id="dots-build" style="display:none"><span></span><span></span><span></span></div>
+      </button>
+      <button class="btn-outline-lime" onclick="randomizeBuild()">🎲 Acak Sistem</button>
+      <button class="btn-ghost" onclick="clearBuild()">Clear</button>
+    </div>
+
+    <!-- BUILD OUTPUT -->
+    <div class="output-wrap" id="build-output">
+      <div class="output-card">
+        <div class="output-topbar">
+          <div class="output-title" id="build-out-title">Character Profile</div>
+          <div class="topbar-right">
+            <button class="btn-copy" onclick="copyOut('build-out-body', this)">Copy</button>
+            <button class="btn-copy" onclick="saveBuiltToLibrary()"
+              style="background:rgba(232,255,71,.1);color:var(--lime-ink);border:1px solid rgba(232,255,71,.25)">💾
+              Simpan</button>
+            <button class="btn-copy" onclick="exportTxt()"
+              style="background:rgba(232,255,71,.1);color:var(--lime-ink);border:1px solid rgba(232,255,71,.25)">↓
+              Export .txt</button>
+          </div>
+        </div>
+        <div class="badge-row" id="build-badges"></div>
+        <div class="output-body" id="build-out-body"></div>
+        <div class="carry-btn-wrap">
+          <button class="btn-outline-lime" onclick="carryToRoom()">✦ Bawa ke Character Room →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ REVERSE LOOKUP ══ -->
+  <div class="panel" id="panel-reverse">
+    <div class="sec-label">Deskripsikan Kepribadian Karaktermu</div>
+    <div class="field" style="margin-bottom:10px">
+      <textarea id="txt-rev" rows="7"
+        placeholder="Tulis sebebas mungkin... misal: 'Dia sangat keras kepala tapi setia sampai mati buat orang-orang yang dia sayang. Punya dark side yang disembunyiin rapat-rapat. Perfeksionis, suka kontrol segala hal, tapi sebenarnya takut ditinggalkan...'"></textarea>
+    </div>
+    <p class="reverse-hint">Gemini akan match ke MBTI, Zodiak, dan Golongan Darah — sekaligus analisis kenapa kombinasi
+      itu cocok.</p>
+    <div class="actions" style="margin-top:16px">
+      <button class="btn-primary" id="btn-rev" onclick="reverseMatch()">
+        <span id="btn-rev-lbl">Match Personality</span>
+        <div class="dots" id="dots-rev" style="display:none"><span></span><span></span><span></span></div>
+      </button>
+    </div>
+
+    <div class="output-wrap" id="rev-output">
+      <div class="output-card">
+        <div class="output-topbar">
+          <div class="output-title">Reverse Match Result</div>
+          <div class="topbar-right">
+            <button class="btn-copy" onclick="copyOut('rev-out-body', this)">Copy</button>
+          </div>
+        </div>
+        <div class="output-body" id="rev-out-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CHARACTER ROOM ══ -->
+  <div class="panel" id="panel-room">
+
+    <div class="sec-label">Pilih Karakter</div>
+    <div class="room-source">
+      <button class="btn-outline-lime" id="btn-from-build" onclick="useBuiltChar()" style="display:none">⬡ Dari Build
+        Character</button>
+      <button class="btn-ghost" onclick="showManualForm()">+ Input Manual</button>
+    </div>
+
+    <!-- MANUAL FORM -->
+    <div class="manual-form" id="manual-form">
+      <div class="sec-label">Profil Karakter</div>
+      <div class="two-col" style="margin-bottom:12px">
+        <div class="field">
+          <div class="field-label"><span class="sys-dot"></span>Nama</div>
+          <input type="text" id="m-name" placeholder="Nama karakter...">
+        </div>
+        <div class="field">
+          <div class="field-label"><span class="sys-dot"></span>Ras / Spesies</div>
+          <input type="text" id="m-race" placeholder="Manusia, Elf, dll (opsional)">
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:12px">
+        <div class="field-label"><span class="sys-dot"></span>Gender <span
+            style="color:var(--muted);font-size:9px;text-transform:none;letter-spacing:0;font-style:italic">(opsional)</span>
+        </div>
+        <div class="select-wrap">
+          <select id="m-gender">
+            <option value="">— skip —</option>
+            <option>Pria</option>
+            <option>Wanita</option>
+            <option>Non-biner</option>
+          </select>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:10px">
+        <div class="field-label" style="margin-bottom:7px"><span class="sys-dot"></span>Kepribadian</div>
+        <textarea id="m-personality" rows="2"
+          placeholder="Boleh MBTI, sifat-sifat, atau deskripsi bebas... misal: INFJ, melankolis, suka menyendiri, perfeksionis"></textarea>
+      </div>
+      <div class="field" style="margin-bottom:10px">
+        <div class="field-label" style="margin-bottom:7px">
+          <span class="sys-dot"></span>Sistem Magic / Class
+          <span
+            style="color:var(--muted);font-size:9px;text-transform:none;letter-spacing:0;font-style:italic">(opsional)</span>
+        </div>
+        <input type="text" id="m-magic"
+          placeholder="Misal: Elemental (Es), Assassin Guild rank-2, Cultivation (Tahap Foundation)...">
+      </div>
+      <div class="field" style="margin-bottom:14px">
+        <div class="field-label" style="margin-bottom:7px">
+          <span class="sys-dot"></span>Backstory
+          <span
+            style="color:var(--muted);font-size:9px;text-transform:none;letter-spacing:0;font-style:italic">(opsional)</span>
+        </div>
+        <textarea id="m-backstory" rows="2" placeholder="Latar belakang singkat..."></textarea>
+      </div>
+      <div class="actions" style="margin-top:4px">
+        <button class="btn-primary" onclick="startRoomManual()">
+          Mulai Character Room →
+        </button>
+      </div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="chat-wrap" id="chat-wrap">
+      <div class="chat-header">
+        <div class="chat-char-info">
+          <div class="chat-char-name" id="chat-char-name">—</div>
+          <div class="chat-char-badge" id="chat-char-badge">—</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="icon-btn" onclick="saveRoomToLibrary()">💾 Simpan</button>
+          <button class="icon-btn" onclick="clearChat()">✕ Reset Chat</button>
+        </div>
+      </div>
+      <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-input-row">
+        <textarea id="chat-input" rows="1"
+          placeholder="Ketik pesan atau skenario... (Enter = kirim, Shift+Enter = baris baru)"
+          onkeydown="handleChatKey(event)"></textarea>
+        <button class="chat-send" id="chat-send" onclick="sendChat()">Kirim</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ RELASI KARAKTER ══ -->
+  <div class="panel" id="panel-relate">
+    <div class="sec-label">Analisis Dinamika Dua Karakter</div>
+    <div class="slot-row">
+      <div class="char-slot">
+        <div class="slot-title">Karakter A
+          <select class="mini-select" onchange="handleSlotSelect('a', this.value); this.value=''">
+            <option value="">↓ isi dari...</option>
+            <optgroup label="Cepat">
+              <option value="quick:build">Build Character (terakhir)</option>
+              <option value="quick:room">Character Room (terakhir)</option>
+            </optgroup>
+            <optgroup label="Library" data-lib-group></optgroup>
+          </select>
+        </div>
+        <div class="field-sm"><label>Nama</label><input type="text" id="ra-name" placeholder="Nama karakter A..."></div>
+        <div class="field-sm"><label>Kepribadian / Sistem</label><input type="text" id="ra-traits"
+            placeholder="MBTI, zodiak, sistem magic, sifat-sifat..."></div>
+        <div class="field-sm" style="margin-bottom:0"><label>Backstory (opsional)</label><textarea id="ra-back" rows="2"
+            placeholder="Latar belakang singkat..."></textarea></div>
+      </div>
+      <div class="arc-vs">✕</div>
+      <div class="char-slot">
+        <div class="slot-title">Karakter B
+          <select class="mini-select" onchange="handleSlotSelect('b', this.value); this.value=''">
+            <option value="">↓ isi dari...</option>
+            <optgroup label="Cepat">
+              <option value="quick:build">Build Character (terakhir)</option>
+              <option value="quick:room">Character Room (terakhir)</option>
+            </optgroup>
+            <optgroup label="Library" data-lib-group></optgroup>
+          </select>
+        </div>
+        <div class="field-sm"><label>Nama</label><input type="text" id="rb-name" placeholder="Nama karakter B..."></div>
+        <div class="field-sm"><label>Kepribadian / Sistem</label><input type="text" id="rb-traits"
+            placeholder="MBTI, zodiak, sistem magic, sifat-sifat..."></div>
+        <div class="field-sm" style="margin-bottom:0"><label>Backstory (opsional)</label><textarea id="rb-back" rows="2"
+            placeholder="Latar belakang singkat..."></textarea></div>
+      </div>
+    </div>
+
+    <div class="field" style="margin-bottom:6px">
+      <div class="field-label" style="margin-bottom:7px"><span class="sys-dot"></span>Konteks Relasi <span
+          style="color:var(--muted);font-size:9px;text-transform:none;letter-spacing:0;font-style:italic">(opsional)</span>
+      </div>
+      <textarea id="r-ctx" rows="2"
+        placeholder="Misal: rekan setim yang baru kenal, kakak-adik, musuh lama, pasangan..."></textarea>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary" id="btn-relate" onclick="analyzeRelation()">
+        <span id="btn-relate-lbl">Analisis Dinamika</span>
+        <div class="dots" id="dots-relate" style="display:none"><span></span><span></span><span></span></div>
+      </button>
+      <button class="btn-ghost" onclick="clearRelate()">Clear</button>
+    </div>
+
+    <div class="output-wrap" id="relate-output">
+      <div class="output-card">
+        <div class="output-topbar">
+          <div class="output-title" id="relate-out-title">Character Dynamics</div>
+          <div class="topbar-right"><button class="btn-copy" onclick="copyOut('relate-out-body', this)">Copy</button>
+          </div>
+        </div>
+        <div class="output-body" id="relate-out-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CEK KONSISTENSI SUARA ══ -->
+  <div class="panel" id="panel-voice">
+    <div class="sec-label">Cek Konsistensi Suara Karakter</div>
+    <div class="char-slot" style="margin-bottom:20px">
+      <div class="slot-title">Profil Referensi
+        <select class="mini-select" onchange="handleSlotSelect('v', this.value); this.value=''">
+          <option value="">↓ isi dari...</option>
+          <optgroup label="Cepat">
+            <option value="quick:build">Build Character (terakhir)</option>
+            <option value="quick:room">Character Room (terakhir)</option>
+          </optgroup>
+          <optgroup label="Library" data-lib-group></optgroup>
+        </select>
+      </div>
+      <div class="field-sm"><label>Nama</label><input type="text" id="v-name" placeholder="Nama karakter..."></div>
+      <div class="field-sm"><label>Kepribadian / Sistem</label><input type="text" id="v-traits"
+          placeholder="MBTI, zodiak, sistem magic, sifat-sifat..."></div>
+      <div class="field-sm" style="margin-bottom:0"><label>Backstory (opsional)</label><textarea id="v-back" rows="2"
+          placeholder="Latar belakang singkat..."></textarea></div>
+    </div>
+
+    <div class="field" style="margin-bottom:6px">
+      <div class="field-label" style="margin-bottom:7px"><span class="sys-dot"></span>Cuplikan Dialog / Scene yang Mau
+        Dicek</div>
+      <textarea id="v-scene" rows="7"
+        placeholder="Paste potongan dialog atau adegan dari draftmu di sini..."></textarea>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary" id="btn-voice" onclick="checkVoice()">
+        <span id="btn-voice-lbl">Cek Konsistensi</span>
+        <div class="dots" id="dots-voice" style="display:none"><span></span><span></span><span></span></div>
+      </button>
+      <button class="btn-ghost" onclick="clearVoice()">Clear</button>
+    </div>
+
+    <div class="output-wrap" id="voice-output">
+      <div class="output-card">
+        <div class="output-topbar">
+          <div class="output-title">Voice Consistency Check</div>
+          <div class="topbar-right"><button class="btn-copy" onclick="copyOut('voice-out-body', this)">Copy</button>
+          </div>
+        </div>
+        <div class="output-body" id="voice-out-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CHARACTER ARC TRACKER ══ -->
+  <div class="panel" id="panel-arc">
+    <div class="sec-label">Lacak Perjalanan Karakter</div>
+    <div class="field" style="margin-bottom:16px">
+      <div class="field-label" style="margin-bottom:7px"><span class="sys-dot"></span>Nama Karakter</div>
+      <input type="text" id="arc-name" placeholder="Nama karakter yang mau dilacak arc-nya...">
+    </div>
+
+    <div class="slot-row">
+      <div class="char-slot">
+        <div class="slot-title">Tahap Awal</div>
+        <div class="field-sm" style="margin-bottom:0"><label>Kondisi / kepribadian di awal cerita</label><textarea
+            id="arc-before" rows="4"
+            placeholder="Misal: penakut, selalu menghindar konflik, gak percaya diri sama kemampuan sendiri..."></textarea>
+        </div>
+      </div>
+      <div class="arc-vs">→</div>
+      <div class="char-slot">
+        <div class="slot-title">Tahap Akhir</div>
+        <div class="field-sm" style="margin-bottom:0"><label>Kondisi / kepribadian di akhir cerita</label><textarea
+            id="arc-after" rows="4"
+            placeholder="Misal: berani ambil keputusan sulit, jadi pemimpin yang dipercaya kelompoknya..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="field" style="margin-bottom:6px">
+      <div class="field-label" style="margin-bottom:7px"><span class="sys-dot"></span>Momen Kunci yang Sudah Ditulis
+        <span
+          style="color:var(--muted);font-size:9px;text-transform:none;letter-spacing:0;font-style:italic">(opsional)</span>
+      </div>
+      <textarea id="arc-beats" rows="3"
+        placeholder="Kejadian-kejadian yang udah kamu tulis yang mendorong perubahan ini (kalau ada)..."></textarea>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary" id="btn-arc" onclick="analyzeArc()">
+        <span id="btn-arc-lbl">Analisis Arc</span>
+        <div class="dots" id="dots-arc" style="display:none"><span></span><span></span><span></span></div>
+      </button>
+      <button class="btn-ghost" onclick="clearArc()">Clear</button>
+    </div>
+
+    <div class="output-wrap" id="arc-output">
+      <div class="output-card">
+        <div class="output-topbar">
+          <div class="output-title" id="arc-out-title">Arc Analysis</div>
+          <div class="topbar-right"><button class="btn-copy" onclick="copyOut('arc-out-body', this)">Copy</button></div>
+        </div>
+        <div class="output-body" id="arc-out-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-top">
+        <span class="footer-brand">Chara<em>Vora</em></span>
+        <a href="https://voralab.id" target="_blank" class="footer-link">voralab.id ↗</a>
+      </div>
+      <p class="footer-disclaimer">Tool kreatif untuk penulis fiksi. Sistem kepribadian (MBTI, Zodiak, dll) digunakan
+        sebagai framework naratif — bukan asesmen psikologis ilmiah. Output AI adalah titik awal, bukan jawaban final.
+      </p>
+      <div class="footer-bottom">
+        <span>© 2026 VoraLab · PT Modular Media Asia</span>
+        <span class="footer-grace">Built by the grace of God</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* ── CONFIG ── */
+    const CANVAS_KEY = "";
+    let builtCharacter = null;
+    let chatHistory = [];
+    let roomCharacter = null;
+
+    /* ── THEME ── */
+    function toggleTheme() {
+      const isLight = document.documentElement.classList.toggle('light');
+      document.getElementById('theme-btn').textContent = isLight ? '☾ Dark' : '☀ Light';
+    }
+
+    /* ── SETTINGS ── */
+    function toggleSettings() {
+      const panel = document.getElementById('settings-panel');
+      const btn = document.getElementById('settings-btn');
+      const open = panel.classList.toggle('open');
+      btn.classList.toggle('active', open);
+    }
+
+    const MODELS = {
+      gemini: ['gemini-2.5-flash-preview-05-20|Gemini 2.5 Flash (Recommended)', 'gemini-2.5-pro-preview-06-05|Gemini 2.5 Pro', 'gemini-2.0-flash|Gemini 2.0 Flash'],
+      openai: ['gpt-4o|GPT-4o', 'gpt-4o-mini|GPT-4o Mini', 'gpt-4-turbo|GPT-4 Turbo'],
+      claude: ['claude-sonnet-4-6|Claude Sonnet 4.6', 'claude-haiku-4-5-20251001|Claude Haiku 4.5'],
+      deepseek: ['deepseek-chat|Deepseek Chat', 'deepseek-reasoner|Deepseek Reasoner'],
+    };
+
+    function onProviderChange() {
+      const p = document.getElementById('ai-provider').value;
+      const sel = document.getElementById('ai-model');
+      sel.innerHTML = MODELS[p].map(m => {
+        const [val, label] = m.split('|');
+        return `<option value="${val}">${label}</option>`;
+      }).join('');
+      document.getElementById('key-field').style.display = p === 'gemini' ? 'none' : 'block';
+    }
+
+    /* ── AI CALLER ── */
+    async function callAI(messages, systemPrompt = '') {
+      const provider = document.getElementById('ai-provider').value;
+      const model = document.getElementById('ai-model').value;
+      const key = document.getElementById('ai-key')?.value?.trim() || CANVAS_KEY;
+
+      if (provider === 'gemini') {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+        const body = {
+          system_instruction: systemPrompt ? { parts: [{ text: systemPrompt }] } : undefined,
+          contents: messages.map(m => ({ role: m.role === 'assistant' ? 'model' : m.role, parts: [{ text: m.content }] })),
+          generationConfig: { temperature: 1.0, maxOutputTokens: 3000 }
+        };
+        if (!body.system_instruction) delete body.system_instruction;
+        const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error.message);
+        return data.candidates[0].content.parts[0].text;
+      }
+
+      // OpenAI / Deepseek compatible
+      if (provider === 'openai' || provider === 'deepseek') {
+        const baseUrl = provider === 'openai' ? 'https://api.openai.com' : 'https://api.deepseek.com';
+        const msgs = systemPrompt ? [{ role: 'system', content: systemPrompt }, ...messages] : messages;
+        const res = await fetch(`${baseUrl}/v1/chat/completions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+          body: JSON.stringify({ model, messages: msgs, max_tokens: 3000, temperature: 1.0 })
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error.message);
+        return data.choices[0].message.content;
+      }
+
+      // Claude
+      if (provider === 'claude') {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+          body: JSON.stringify({ model, max_tokens: 3000, system: systemPrompt || undefined, messages })
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+        return data.content[0].text;
+      }
+    }
+
+    /* ── TABS ── */
+    function switchTab(t) {
+      const order = ['library', 'build', 'reverse', 'room', 'relate', 'voice', 'arc'];
+      document.querySelectorAll('.tab-btn').forEach((b, i) => {
+        b.classList.toggle('active', order[i] === t);
+      });
+      order.forEach(id => {
+        document.getElementById(`panel-${id}`).classList.toggle('active', id === t);
+      });
+      if (t === 'library') renderLibrary();
+    }
+
+    /* ── BUILD CHARACTER ── */
+    function updateBuildCount() {
+      const n = ['b-mbti', 'b-zodiac', 'b-blood'].filter(id => document.getElementById(id).value).length
+        + (document.getElementById('b-magic').value.trim() ? 1 : 0);
+      document.getElementById('build-count').innerHTML = `<span>${n}</span> sistem dipilih`;
+    }
+
+    /* ── RANDOMIZE ── */
+    const RAND_MBTI = ['INTJ', 'INTP', 'ENTJ', 'ENTP', 'INFJ', 'INFP', 'ENFJ', 'ENFP', 'ISTJ', 'ISFJ', 'ESTJ', 'ESFJ', 'ISTP', 'ISFP', 'ESTP', 'ESFP'];
+    const RAND_ZODIAC = ['Aries ♈', 'Taurus ♉', 'Gemini ♊', 'Cancer ♋', 'Leo ♌', 'Virgo ♍', 'Libra ♎', 'Scorpio ♏', 'Sagittarius ♐', 'Capricorn ♑', 'Aquarius ♒', 'Pisces ♓'];
+    const RAND_BLOOD = ['Gol. Darah A', 'Gol. Darah B', 'Gol. Darah AB', 'Gol. Darah O'];
+    const RAND_GENDER = ['Pria', 'Wanita', 'Non-biner'];
+    const RAND_MAGIC = [
+      'Elemental (Api)', 'Elemental (Air)', 'Elemental (Petir)', 'Elemental (Tanah)',
+      'Cultivation — Tahap Qi Condensation', 'Cultivation — Tahap Foundation Establishment',
+      'Battle Mage tier-3', 'Assassin Guild rank-2', 'Alchemist Guild — Master rank',
+      'Semblance (kekuatan unik personal)', 'Rune Knight', 'Necromancer — Bone Cult',
+      'Beast Tamer', 'Illusionist', 'Blood Magic practitioner', 'Time Manipulator (terbatas)',
+      'Shapeshifter — Were-creature', 'Psychic — Telekinesis', 'Divine Cleric — Ordo Penyembuh',
+      'Shadow Walker', 'Enchanter / Artificer', 'Tanpa kekuatan — human ingenuity saja',
+      'Gunslinger — Cultivator Peluru', 'Ki/Chi Master — Bela Diri Internal', 'Spirit Contract (pakta dengan roh)',
+      'Puppeteer — Pengendali Boneka Sihir', 'Bard Magic — Sihir lewat Lagu', 'Weapon Master (murni skill, tanpa sihir)',
+      'Sealed Power — Kekuatan Tersegel (belum terbangun)', 'Draconic Bloodline', 'Curse-Bearer (kutukan jadi kekuatan)',
+      'Machine Symbiosis — Implan Cyborg', 'Nanite Swarm Control', 'Astral Projection', 'Chrono Mage — Manipulasi Waktu',
+      'Void Magic', 'Homunculus Crafting', 'Bloodline Awakening', 'Spirit Medium — Perantara Arwah',
+      'Totem Warrior', 'Ink/Calligraphy Magic', 'Card/Tarot Magic', 'Weather Mage', 'Gravity Manipulator',
+      'Poison Master', 'Mimicry — Meniru Kekuatan Orang Lain', 'Contract Demon Summoner'
+    ];
+
+    // Setiap hook backstory ditandai tag tema, dipakai buat matching kontekstual sama Ras/Magic yang udah diisi
+    const BACKSTORY_BANK = [
+      { text: 'Kehilangan seluruh keluarganya dalam perang, dibesarkan oleh pihak yang justru dulu jadi musuh mereka.', tags: ['war', 'family', 'tragic'] },
+      { text: 'Dulu pahlawan yang dielu-elukan, kini buronan setelah dikhianati orang yang paling dipercaya.', tags: ['betrayal', 'war', 'exile'] },
+      { text: 'Dituduh atas kejahatan yang tidak pernah dilakukannya, kini hidup dalam pelarian.', tags: ['betrayal', 'exile', 'street'] },
+      { text: 'Anak dari dua dunia yang saling bertikai — tidak pernah diterima sepenuhnya oleh keduanya.', tags: ['identity', 'exile', 'tragic'] },
+      { text: 'Menyimpan satu rahasia besar yang bisa menghancurkan semua orang yang dia sayangi kalau terbongkar.', tags: ['identity', 'dark'] },
+      { text: 'Dulu anggota organisasi rahasia, kini jadi salah satu incaran utama mereka.', tags: ['guild', 'betrayal', 'exile'] },
+      { text: 'Kehilangan kekuatan/kemampuannya di masa lalu akibat suatu insiden, dan diam-diam berusaha mendapatkannya kembali.', tags: ['identity', 'revenge', 'mentor'] },
+      { text: 'Terikat sumpah atau janji lama yang tidak bisa dia langgar, walau itu bertentangan dengan hatinya sekarang.', tags: ['noble', 'forbidden', 'tragic'] },
+      { text: 'Satu-satunya yang selamat dari bencana yang menghancurkan seluruh kampung halamannya.', tags: ['tragic', 'war', 'family'] },
+      { text: 'Diam-diam mencari pembalasan atas kematian mentor/gurunya bertahun-tahun lalu.', tags: ['revenge', 'mentor'] },
+      { text: 'Dibesarkan dan dilatih sebagai senjata hidup sejak kecil, kini mencoba belajar jadi "manusia biasa".', tags: ['experiment', 'identity', 'dark'] },
+      { text: 'Pewaris takhta/posisi penting yang melarikan diri demi menghindari beban takdirnya.', tags: ['noble', 'exile'] },
+      { text: 'Kehilangan sebagian ingatannya dan perlahan mencari tahu siapa dirinya yang sebenarnya.', tags: ['memory', 'identity'] },
+      { text: 'Dulu penjahat kelas kakap yang kini diam-diam berusaha menebus dosa masa lalunya.', tags: ['dark', 'redemption', 'street'] },
+      { text: 'Tumbuh besar di jalanan, belajar bertahan hidup dengan cara apa pun yang diperlukan.', tags: ['street', 'family'] },
+      { text: 'Terikat kontrak atau perjanjian dengan entitas yang jauh lebih berkuasa darinya.', tags: ['dark', 'forbidden', 'guild'] },
+      { text: 'Satu-satunya yang selamat dari eksperimen terlarang yang mengubah dirinya selamanya.', tags: ['experiment', 'techno', 'dark'] },
+      { text: 'Mengasingkan diri dari orang-orang terdekat setelah gagal melindungi seseorang yang paling berharga baginya.', tags: ['tragic', 'family', 'exile'] },
+      { text: 'Menyamar sebagai orang biasa, padahal menyimpan identitas rahasia yang berbahaya kalau terungkap.', tags: ['identity', 'guild', 'forbidden'] },
+      { text: 'Dibesarkan dalam kemewahan tapi diam-diam merasa jadi orang asing di keluarganya sendiri.', tags: ['noble', 'family', 'identity'] },
+      { text: 'Bertahun-tahun mencari seseorang dari masa lalunya yang menghilang tanpa jejak.', tags: ['memory', 'family'] },
+      { text: 'Pernah mengkhianati seseorang demi bertahan hidup, dan rasa bersalah itu masih menghantuinya.', tags: ['betrayal', 'dark', 'street'] },
+      { text: 'Terlahir dengan "kutukan" atau tanda yang membuatnya dijauhi sejak kecil.', tags: ['curse', 'exile', 'tragic'] },
+      { text: 'Dulu murid kesayangan yang berbalik melawan gurunya sendiri karena alasan yang kompleks.', tags: ['mentor', 'betrayal', 'dark'] },
+      { text: 'Unit eksperimental yang lolos dari fasilitas yang menciptakannya, kini diburu untuk "didaur ulang".', tags: ['techno', 'experiment', 'exile'] },
+      { text: 'Kesadarannya pernah di-upload ke sistem lain sebelum kembali ke tubuh ini — sebagian dirinya terasa asing.', tags: ['techno', 'identity', 'memory'] },
+      { text: 'Diusir dari kaumnya sendiri karena dianggap "cacat" atau berbeda dari yang lain.', tags: ['primal', 'exile', 'tragic'] },
+      { text: 'Terakhir dari sukunya yang musnah, membawa tanggung jawab menjaga tradisi yang nyaris punah.', tags: ['primal', 'tragic', 'family'] },
+      { text: 'Naluri liarnya kadang sulit dikendalikan, terutama saat emosi memuncak — sesuatu yang ditakutinya sendiri.', tags: ['primal', 'identity', 'dark'] },
+    ];
+
+    // Setiap ras dipetakan ke satu "gaya nama" biar nama yang di-generate terasa cocok
+    const RAND_RACE = [
+      { name: 'Manusia', style: 'human' },
+      { name: 'Elf', style: 'elegant' },
+      { name: 'Half-Elf', style: 'human' },
+      { name: 'Dwarf', style: 'harsh' },
+      { name: 'Orc', style: 'harsh' },
+      { name: 'Fae', style: 'elegant' },
+      { name: 'Vampire', style: 'elegant' },
+      { name: 'Naga (Dragonkin)', style: 'harsh' },
+      { name: 'Demon', style: 'harsh' },
+      { name: 'Malaikat/Celestial', style: 'elegant' },
+      { name: 'Beastkin', style: 'human' },
+      { name: 'Ghoul', style: 'harsh' },
+      { name: 'Elemental Spirit', style: 'elegant' },
+      { name: 'Goblin', style: 'harsh' },
+      { name: 'Merfolk', style: 'elegant' },
+      { name: 'Android/Cyborg', style: 'techno' },
+      { name: 'Tiefling', style: 'harsh' },
+      { name: 'Dragonborn', style: 'harsh' },
+      { name: 'Kitsune/Youkai', style: 'elegant' },
+      { name: 'Golem', style: 'techno' },
+      { name: 'Lich', style: 'harsh' },
+      { name: 'Werewolf', style: 'primal' },
+      { name: 'Centaur', style: 'primal' },
+      { name: 'Harpy', style: 'primal' },
+      { name: 'Djinn/Genie', style: 'elegant' },
+      { name: 'Alien/Extraterrestrial', style: 'techno' },
+      { name: 'Mutant', style: 'techno' },
+      { name: 'Clone', style: 'techno' },
+      { name: 'Dryad', style: 'elegant' },
+      { name: 'Siren', style: 'elegant' },
+      { name: 'Gnome', style: 'human' },
+      { name: 'Troll', style: 'primal' },
+      { name: 'Chimera', style: 'primal' },
+      { name: 'Wraith/Shade', style: 'harsh' },
+      { name: 'Homunculus', style: 'techno' },
+      { name: 'Minotaur', style: 'primal' },
+      { name: 'Satyr', style: 'primal' },
+      { name: 'Ogre', style: 'harsh' },
+      { name: 'Half-Demon/Cambion', style: 'harsh' },
+    ];
+
+    const NAME_PARTS = {
+      human: {
+        male: { start: ['Ar', 'Bran', 'Cal', 'Dor', 'El', 'Fen', 'Gar', 'Hal', 'Ivo', 'Jor', 'Kael', 'Leo', 'Mar', 'Ren', 'Oren', 'Ryn', 'Stef', 'Theo', 'Val', 'Wira'], end: ['ic', 'on', 'an', 'us', 'en', 'or', 'ard', 'win', 'iel', 'yn'] },
+        female: { start: ['Ari', 'Bel', 'Cel', 'Dara', 'Ely', 'Fira', 'Gwen', 'Hana', 'Ines', 'Jora', 'Kira', 'Lira', 'Mira', 'Nara', 'Ora', 'Petra', 'Rina', 'Sera', 'Thea', 'Vera'], end: ['a', 'ia', 'elle', 'ine', 'yn', 'ara', 'ith', 'ona', 'wen', 'isa'] },
+        neutral: { start: ['Ash', 'Bly', 'Cyr', 'Dex', 'Ez', 'Fal', 'Gray', 'Ivy', 'Jae', 'Kess', 'Lior', 'Nyx', 'Onyx', 'Quin', 'Ren', 'Sky', 'Tal', 'Vesper', 'Wren', 'Zephyr'], end: ['', 'en', 'ar', 'is', 'yn', 'el', 'ox', 'ie'] }
+      },
+      elegant: {
+        male: { start: ['Ael', 'Thal', 'Sil', 'Fael', 'Ori', 'Lys', 'Cael', 'Ithil', 'Vaen', 'Ysar'], end: ['ion', 'iel', 'oth', 'wen', 'aris', 'ael', 'endor', 'ryn', 'ius', 'oriel'] },
+        female: { start: ['Aer', 'Lira', 'Syl', 'Faelis', 'Nim', 'Isil', 'Caela', 'Ithil', 'Vaena', 'Ysara'], end: ['ith', 'iel', 'wen', 'ara', 'yssia', 'ael', 'endra', 'ryn', 'ia', 'oriel'] },
+        neutral: { start: ['Ael', 'Syl', 'Fael', 'Nim', 'Isil', 'Cael', 'Ithil', 'Vaen', 'Ysar', 'Ori'], end: ['iel', 'wen', 'oth', 'yn', 'en', 'is', 'ael', 'ora', 'eth', 'ion'] }
+      },
+      harsh: {
+        male: { start: ['Grim', 'Thok', 'Bor', 'Drak', 'Mordak', 'Uzg', 'Karn', 'Zog', 'Vrak', 'Kro'], end: ['ash', 'ug', 'gar', 'moth', 'ok', 'ur', 'nak', 'goth', 'rok', 'dum'] },
+        female: { start: ['Grish', 'Vex', 'Nagra', 'Drusk', 'Morga', 'Zara', 'Krul', 'Ashka', 'Vrena', 'Thurga'], end: ['a', 'esh', 'ra', 'oth', 'ka', 'ith', 'una', 'ga', 'vra', 'dun'] },
+        neutral: { start: ['Grix', 'Vok', 'Nash', 'Drum', 'Karg', 'Zeth', 'Kruul', 'Ashen', 'Vren', 'Thog'], end: ['ash', 'ok', 'ur', 'esh', 'ath', 'og', 'ix', 'un'] }
+      },
+      techno: {
+        male: { start: ['Unit', 'Kaid', 'Rex', 'Vex', 'Zeta', 'Cypher', 'Axiom', 'Vector', 'Proto', 'Kade'], end: ['-07', '-X9', '-Alpha', '.exe', '-Prime', '_v2', '-9K', '-Core', '-Zero', '-One'] },
+        female: { start: ['Aria', 'Nova', 'Vera', 'Cortex', 'Lyra', 'Iris', 'Echo', 'Vega', 'Sera', 'Astra'], end: ['-07', '-X9', '-Prime', '.sys', '_v3', '-9K', '-Nyx', '-Zero', '-Two', '-Core'] },
+        neutral: { start: ['Unit', 'Nova', 'Cortex', 'Echo', 'Axiom', 'Vega', 'Cypher', 'Proto', 'Zeta', 'Iris'], end: ['-01', '-X', '.exe', '-Prime', '_alt', '-9', '-Core', '-Null'] }
+      },
+      primal: {
+        male: { start: ['Kaan', 'Vroth', 'Tarak', 'Bram', 'Kestrel', 'Draven', 'Rurik', 'Wolfe', 'Thorn', 'Grael'], end: ['ock', 'ar', 'en', 'ir', 'ash', 'wyn', 'or', 'un', 'ak', 'eth'] },
+        female: { start: ['Kira', 'Vesna', 'Tarasha', 'Briar', 'Kestra', 'Ravena', 'Ruri', 'Wolfa', 'Thorna', 'Graela'], end: ['a', 'ia', 'ora', 'yn', 'esh', 'wen', 'ara', 'una', 'aka', 'etha'] },
+        neutral: { start: ['Kesh', 'Vex', 'Tar', 'Bri', 'Kest', 'Rav', 'Rur', 'Wolf', 'Thor', 'Grae'], end: ['en', 'ar', 'ir', 'ash', 'wyn', 'or', 'un', 'ak', 'eth', 'yx'] }
+      }
+    };
+
+    function randPick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+    function generateRandomName(style, gender) {
+      const bank = NAME_PARTS[style] || NAME_PARTS.human;
+      const g = gender === 'Pria' ? 'male' : gender === 'Wanita' ? 'female' : 'neutral';
+      const pool = bank[g] || bank.neutral;
+      return randPick(pool.start) + randPick(pool.end);
+    }
+
+    function randomizeBuild() {
+      const raceObj = randPick(RAND_RACE);
+      const gender = randPick(RAND_GENDER);
+
+      document.getElementById('b-race').value = raceObj.name;
+      document.getElementById('b-gender').value = gender;
+      document.getElementById('b-name').value = generateRandomName(raceObj.style, gender);
+      document.getElementById('b-mbti').value = randPick(RAND_MBTI);
+      document.getElementById('b-zodiac').value = randPick(RAND_ZODIAC);
+      document.getElementById('b-blood').value = randPick(RAND_BLOOD);
+      document.getElementById('b-magic').value = randPick(RAND_MAGIC);
+      updateBuildCount();
+    }
+
+    function randomizeMagicField() {
+      document.getElementById('b-magic').value = randPick(RAND_MAGIC);
+      updateBuildCount();
+    }
+
+    function randomizeBackstoryLocal() {
+      const raceInput = document.getElementById('b-race').value.trim().toLowerCase();
+      const magicInput = document.getElementById('b-magic').value.trim().toLowerCase();
+
+      const raceEntry = RAND_RACE.find(r => r.name.toLowerCase() === raceInput);
+      const style = raceEntry ? raceEntry.style : null;
+
+      let relevantTags = [];
+      if (style === 'techno')  relevantTags.push('techno', 'experiment', 'identity');
+      if (style === 'harsh')   relevantTags.push('war', 'revenge', 'dark', 'curse', 'street');
+      if (style === 'elegant') relevantTags.push('tragic', 'curse', 'noble', 'forbidden', 'mentor');
+      if (style === 'human')   relevantTags.push('family', 'betrayal', 'street', 'guild');
+      if (style === 'primal')  relevantTags.push('primal', 'tragic', 'family', 'exile');
+
+      // Keyword hint dari isi field Magic/Class
+      if (magicInput.includes('guild'))                         relevantTags.push('guild');
+      if (magicInput.includes('cultivation'))                   relevantTags.push('mentor', 'revenge');
+      if (/necromancer|blood|shadow/.test(magicInput))          relevantTags.push('dark', 'curse');
+      if (magicInput.includes('time'))                          relevantTags.push('memory');
+      if (/semblance|psychic/.test(magicInput))                 relevantTags.push('identity');
+      if (magicInput.includes('tanpa kekuatan'))                relevantTags.push('street', 'family');
+      if (/rune|divine|cleric/.test(magicInput))                relevantTags.push('noble', 'mentor');
+      if (/void|curse-bearer/.test(magicInput))                 relevantTags.push('dark', 'curse');
+      if (/totem|spirit medium/.test(magicInput))               relevantTags.push('primal');
+      if (/draconic|bloodline/.test(magicInput))                relevantTags.push('noble', 'identity');
+      if (/nanite|symbiosis|homunculus/.test(magicInput))       relevantTags.push('techno', 'experiment');
+
+      let pool = BACKSTORY_BANK;
+      if (relevantTags.length) {
+        const filtered = BACKSTORY_BANK.filter(b => b.tags.some(t => relevantTags.includes(t)));
+        if (filtered.length) pool = filtered;
+      }
+
+      return randPick(pool).text;
+    }
+
+    function showBackstorySeedNote(text) {
+      const note = document.getElementById('b-ctx-seed-note');
+      if (!note) return;
+      note.textContent = `Ide awal kamu (sebelum di-develop): "${text}"`;
+      note.style.display = 'block';
+    }
+
+    async function randomizeBackstoryField() {
+      const btn = document.getElementById('btn-rand-backstory');
+      const ctxField = document.getElementById('b-ctx');
+      const existing = ctxField.value.trim();
+
+      const name   = document.getElementById('b-name').value.trim();
+      const race   = document.getElementById('b-race').value.trim();
+      const gender = document.getElementById('b-gender').value;
+      const mbti   = document.getElementById('b-mbti').value;
+      const zodiac = document.getElementById('b-zodiac').value;
+      const blood  = document.getElementById('b-blood').value;
+      const magic  = document.getElementById('b-magic').value.trim();
+
+      const contextLines = [
+        name && `Nama: ${name}`,
+        race && `Ras/Spesies: ${race}`,
+        gender && `Gender: ${gender}`,
+        mbti && `MBTI: ${mbti}`,
+        zodiac && `Zodiak: ${zodiac}`,
+        blood && blood,
+        magic && `Sistem Magic/Class: ${magic}`,
+      ].filter(Boolean).join('\n') || '(belum ada data sistem apapun — buat backstory generik yang bisa dipakai lintas genre)';
+
+      const originalLabel = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = '⏳ Mikir...';
+
+      try {
+        const prompt = existing
+          ? `Kamu adalah asisten worldbuilding untuk fiction writers.
+
+Data karakter yang sudah ada (pakai ini sebagai bahan racikan diam-diam, JANGAN disebut eksplisit di teksnya):
+${contextLines}
+
+Penulis sudah punya draft awal untuk backstory/konteks karakter ini:
+"${existing}"
+
+Kembangkan draft itu jadi backstory yang lebih tajam, TETAP 1-2 kalimat saja (jangan lebih panjang dari itu). WAJIB tetap konsisten dengan arah/inti ide aslinya — jangan menggantinya dengan ide yang sama sekali berbeda, cukup pertajam detail atau motivasinya.
+
+ATURAN PENTING:
+- Ini backstory/konteks karakter fiksi, BUKAN hasil tes kepribadian. Jangan pernah menyebut nama sistem (MBTI, zodiak, golongan darah, dll) atau menjelaskan "karena dia INFJ..." / "sebagai Leo..." — data itu cuma inspirasi diam-diam untuk nuansa cerita, bukan sesuatu yang dijelaskan ke pembaca.
+- Tulis HANYA teks backstory-nya dalam bahasa Indonesia, tanpa tanda kutip, tanpa embel-embel pembuka seperti "Berikut adalah...".`
+          : `Kamu adalah asisten worldbuilding untuk fiction writers.
+
+Data karakter (pakai ini sebagai bahan racikan diam-diam, JANGAN disebut eksplisit di teksnya):
+${contextLines}
+
+Buatkan SATU ide backstory/konteks karakter, HANYA 1-2 kalimat, padat dan langsung kena — cari sudut yang menarik dan hindari klise.
+
+ATURAN PENTING:
+- Ini backstory/konteks karakter fiksi, BUKAN hasil tes kepribadian. Jangan pernah menyebut nama sistem (MBTI, zodiak, golongan darah, dll) atau menjelaskan "karena dia INFJ..." / "sebagai Leo..." — data itu cuma inspirasi diam-diam untuk nuansa cerita, bukan sesuatu yang dijelaskan ke pembaca.
+- Tulis HANYA teks backstory-nya dalam bahasa Indonesia, tanpa tanda kutip, tanpa embel-embel pembuka seperti "Berikut adalah...".`;
+
+        const result = await callAI([{ role: 'user', content: prompt }]);
+        ctxField.value = result.trim();
+        if (existing) showBackstorySeedNote(existing);
+      } catch (e) {
+        // AI gak kesambung/gagal (belum ada API key, provider error, dll) — fallback ke bank lokal
+        ctxField.value = randomizeBackstoryLocal();
+        if (existing) showBackstorySeedNote(existing);
+        console.warn('Generate backstory via AI gagal, fallback ke bank lokal:', e.message);
+      }
+
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+    }
+
+    async function buildChar() {
+      const name = document.getElementById('b-name').value.trim();
+      const race = document.getElementById('b-race').value.trim();
+      const gender = document.getElementById('b-gender').value;
+      const mbti = document.getElementById('b-mbti').value;
+      const zodiac = document.getElementById('b-zodiac').value;
+      const blood = document.getElementById('b-blood').value;
+      const magic = document.getElementById('b-magic').value.trim();
+      const ctx = document.getElementById('b-ctx').value.trim();
+
+      if (!mbti && !zodiac && !blood && !magic && !ctx) {
+        alert('Pilih minimal satu sistem kepribadian atau isi backstory dulu.'); return;
+      }
+
+      setLoad('build', true);
+
+      const systems = [mbti && `MBTI: ${mbti}`, zodiac && `Zodiak: ${zodiac}`, blood && `${blood}`, magic && `${magic}`].filter(Boolean).join(' · ');
+
+      const prompt = `Kamu adalah character psychology synthesizer untuk fiction writers.
+
+Data karakter:
+- Nama: ${name || 'Belum ditentukan'}
+- Ras/Spesies: ${race || 'Manusia'}
+${gender ? `- Gender: ${gender}` : ''}
+${mbti ? `- MBTI: ${mbti}` : ''}
+${zodiac ? `- Zodiak: ${zodiac}` : ''}
+${blood ? `- ${blood}` : ''}
+${magic ? `- Sistem Magic/Class: ${magic}` : ''}
+${ctx ? `- Backstory: ${ctx}` : ''}
+
+Buat dua bagian:
+
+## Profil Karakter
+2–3 paragraf tentang siapa karakter ini di inti terdalamnya. Cari TENSIONS dan CONTRADICTIONS dari kombinasi sistem ini${magic ? ' — termasuk bagaimana sistem magic/class-nya merefleksikan atau berkontradiksi dengan kepribadian intinya (misal: petarung jago tapi hatinya lemah, atau sebaliknya)' : ''}. Tulis dengan kedalaman novelis — bukan textbook. Sertakan:
+- **Kekuatan yang paling menonjol dalam narasi**
+- **Luka & Blind Spot:** core wound yang tidak mereka sadari
+
+## Contoh Dialog
+Tulis respons karakter ini LANGSUNG IN-CHARACTER — bukan analisis, bukan penjelasan. Langsung suaranya. Boleh pakai *action* dalam tanda bintang.
+
+**Menerima kabar buruk tiba-tiba:**
+
+**Saat marah pada seseorang:**
+
+**Harus meminta maaf:**
+
+**Gugup sebelum sesuatu penting:**
+
+**Bertemu orang yang tidak disukainya:**
+
+Gunakan bahasa Indonesia. Suara karakter harus konsisten dari satu situasi ke situasi lain.`;
+
+      try {
+        const result = await callAI([{ role: 'user', content: prompt }]);
+        renderBuildOutput(name, systems, result);
+        builtCharacter = { name: name || 'Unnamed', race, gender, mbti, zodiac, blood, magic, backstory: ctx, profileSummary: result };
+        document.getElementById('btn-from-build').style.display = '';
+      } catch (e) {
+        document.getElementById('build-out-body').innerHTML = `<p style="color:var(--orange)">⚠ Error: ${e.message}</p>`;
+        document.getElementById('build-output').classList.add('visible');
+        document.getElementById('build-output').style.display = 'block';
+      }
+      setLoad('build', false);
+    }
+
+    function renderBuildOutput(name, systems, markdown) {
+      document.getElementById('build-out-title').textContent = name ? `${name} — Character Profile` : 'Character Profile';
+      const row = document.getElementById('build-badges');
+      row.innerHTML = systems.split(' · ').filter(Boolean).map(s => `<span class="badge">${s}</span>`).join('');
+      document.getElementById('build-out-body').innerHTML = md2html(markdown);
+      const wrap = document.getElementById('build-output');
+      wrap.classList.add('visible'); wrap.style.display = 'block';
+      setTimeout(() => wrap.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+    }
+
+    function clearBuild() {
+      ['b-name', 'b-race', 'b-ctx', 'b-magic'].forEach(id => document.getElementById(id).value = '');
+      ['b-mbti', 'b-zodiac', 'b-blood', 'b-gender'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('b-ctx-seed-note').style.display = 'none';
+      document.getElementById('build-output').style.display = 'none';
+      document.getElementById('build-output').classList.remove('visible');
+      updateBuildCount();
+      builtCharacter = null;
+      document.getElementById('btn-from-build').style.display = 'none';
+    }
+
+    /* ── REVERSE LOOKUP ── */
+    async function reverseMatch() {
+      const desc = document.getElementById('txt-rev').value.trim();
+      if (!desc) { alert('Tulis deskripsi karakter dulu.'); return; }
+      setLoad('rev', true);
+
+      const prompt = `Kamu adalah character personality classifier untuk fiction writers.
+
+Deskripsi karakter:
+"${desc}"
+
+Berikan match terbaik + confidence (🟢 High / 🟡 Medium / 🔴 Low) + reasoning singkat untuk:
+
+## System Matches
+
+- **MBTI** (sertakan tipe lengkap):
+- **Zodiak Barat**:
+- **Golongan Darah**:
+
+## Mengapa Kombinasi Ini Koheren
+Satu paragraf — connecting thread dari ketiga sistem di atas.
+
+## Di Mana Sistemnya Kurang Pas
+Jujur tentang trait yang tidak fit sempurna ke sistem mana pun.
+
+## Rekomendasi Utama
+Kalau penulis hanya boleh pakai satu sistem untuk karakter ini, pakai yang mana? Kenapa?
+
+Gunakan bahasa Indonesia.`;
+
+      try {
+        const result = await callAI([{ role: 'user', content: prompt }]);
+        document.getElementById('rev-out-body').innerHTML = md2html(result);
+        const wrap = document.getElementById('rev-output');
+        wrap.classList.add('visible'); wrap.style.display = 'block';
+        setTimeout(() => wrap.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+      } catch (e) {
+        document.getElementById('rev-out-body').innerHTML = `<p style="color:var(--orange)">⚠ Error: ${e.message}</p>`;
+        document.getElementById('rev-output').classList.add('visible');
+        document.getElementById('rev-output').style.display = 'block';
+      }
+      setLoad('rev', false);
+    }
+
+    /* ── CHARACTER ROOM ── */
+    function carryToRoom() {
+      switchTab('room');
+      document.getElementById('btn-from-build').style.display = builtCharacter ? '' : 'none';
+    }
+
+    function useBuiltChar() {
+      if (!builtCharacter) return;
+      startRoom(builtCharacter);
+    }
+
+    function showManualForm() {
+      document.getElementById('manual-form').classList.toggle('open');
+    }
+
+    function startRoomManual() {
+      const name = document.getElementById('m-name').value.trim();
+      const race = document.getElementById('m-race').value.trim();
+      const gender = document.getElementById('m-gender').value;
+      const personality = document.getElementById('m-personality').value.trim();
+      const magic = document.getElementById('m-magic').value.trim();
+      const backstory = document.getElementById('m-backstory').value.trim();
+      if (!name && !personality) { alert('Isi nama atau kepribadian karakter dulu.'); return; }
+      startRoom({ name: name || 'Unnamed', race, gender, mbti: '', zodiac: '', blood: '', magic, backstory, profileSummary: '', manualPersonality: personality });
+    }
+
+    function startRoom(char) {
+      roomCharacter = char;
+      chatHistory = [];
+
+      const badge = [char.mbti, char.zodiac, char.blood, char.magic, char.manualPersonality].filter(Boolean).join(' · ') || 'Custom';
+      document.getElementById('chat-char-name').textContent = char.name || 'Unnamed';
+      document.getElementById('chat-char-badge').textContent = badge;
+      document.getElementById('chat-messages').innerHTML = '';
+      document.getElementById('manual-form').classList.remove('open');
+      document.getElementById('chat-wrap').classList.add('open');
+
+      appendSystemMsg(`Karakter siap. Ketik apa saja untuk memulai — skenario, pertanyaan, atau situasi yang ingin kamu uji.`);
+    }
+
+    function getRoomSystemPrompt() {
+      const c = roomCharacter;
+      const systems = [c.mbti && `MBTI: ${c.mbti}`, c.zodiac && `Zodiak: ${c.zodiac}`, c.blood && c.blood, c.magic && `Sistem Magic/Class: ${c.magic}`, c.manualPersonality && `Kepribadian: ${c.manualPersonality}`].filter(Boolean).join(', ');
+      const profile = c.profileSummary ? `\nProfil lengkap:\n${c.profileSummary.substring(0, 800)}` : '';
+
+      return `Kamu adalah ${c.name}, karakter fiksi dalam sebuah cerita.
+
+PROFIL:
+Nama: ${c.name}
+Ras/Spesies: ${c.race || 'Manusia'}
+${c.gender ? `Gender: ${c.gender}` : ''}
+${systems}
+Backstory: ${c.backstory || 'Tidak ada info tambahan'}${profile}
+
+ATURAN MUTLAK:
+1. Selalu jawab SEBAGAI ${c.name} — tidak pernah keluar dari karakter
+2. Gunakan bahasa dan cara bicara yang sesuai kepribadiannya — naturalkan
+3. Reaksi harus mencerminkan kombinasi kepribadian dan backstory-nya
+4. Boleh pakai *action* dalam tanda bintang untuk gestur/ekspresi${c.magic ? `\n5. Kalau relevan sama situasi, boleh referensi kemampuan/status dari sistem magic-nya (${c.magic}) secara natural — bukan diucapkan seperti membaca stat sheet` : ''}
+6. JANGAN pernah bilang "Sebagai INTJ..." atau menjelaskan kepribadianmu
+7. JANGAN bilang kamu AI
+8. Kalau karakter akan diam — boleh jawab singkat atau dengan action saja`;
+    }
+
+    async function sendChat() {
+      const input = document.getElementById('chat-input').value.trim();
+      if (!input || !roomCharacter) return;
+
+      document.getElementById('chat-input').value = '';
+      appendMsg('user', input);
+      chatHistory.push({ role: 'user', content: input });
+
+      const sendBtn = document.getElementById('chat-send');
+      sendBtn.disabled = true;
+
+      const typingId = appendTyping();
+
+      try {
+        const result = await callAI(chatHistory, getRoomSystemPrompt());
+        removeTyping(typingId);
+        appendMsg('ai', result);
+        chatHistory.push({ role: 'assistant', content: result });
+      } catch (e) {
+        removeTyping(typingId);
+        appendMsg('ai', `*[Error: ${e.message}]*`);
+      }
+      sendBtn.disabled = false;
+    }
+
+    function handleChatKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+    }
+
+    function appendMsg(role, text) {
+      const wrap = document.getElementById('chat-messages');
+      const div = document.createElement('div');
+      div.className = `chat-msg ${role}`;
+      div.innerHTML = `<div class="chat-bubble">${md2htmlInline(text)}</div>`;
+      wrap.appendChild(div);
+      wrap.scrollTop = wrap.scrollHeight;
+    }
+
+    function appendSystemMsg(text) {
+      const wrap = document.getElementById('chat-messages');
+      const div = document.createElement('div');
+      div.style.cssText = 'text-align:center;font-family:var(--mono);font-size:10px;color:var(--muted);padding:8px 0';
+      div.textContent = text;
+      wrap.appendChild(div);
+    }
+
+    function appendTyping() {
+      const wrap = document.getElementById('chat-messages');
+      const div = document.createElement('div');
+      const id = 'typing-' + Date.now();
+      div.id = id; div.className = 'chat-msg ai';
+      div.innerHTML = '<div class="typing-bubble"><span></span><span></span><span></span></div>';
+      wrap.appendChild(div);
+      wrap.scrollTop = wrap.scrollHeight;
+      return id;
+    }
+
+    function removeTyping(id) {
+      document.getElementById(id)?.remove();
+    }
+
+    function clearChat() {
+      chatHistory = [];
+      document.getElementById('chat-messages').innerHTML = '';
+      appendSystemMsg('Chat di-reset. Mulai percakapan baru.');
+    }
+
+    /* ── CHARACTER LIBRARY (localStorage) ── */
+    const LIB_KEY = 'charavora_library_v1';
+
+    function getLibrary() {
+      try { return JSON.parse(localStorage.getItem(LIB_KEY) || '[]'); }
+      catch (e) { console.error('Gagal baca library', e); return []; }
+    }
+
+    function setLibrary(arr) {
+      try { localStorage.setItem(LIB_KEY, JSON.stringify(arr)); }
+      catch (e) { alert('Gagal menyimpan ke Library (mungkin storage browser penuh/diblokir).'); }
+    }
+
+    function saveToLibrary(char) {
+      if (!char || !char.name || char.name === 'Unnamed') {
+        alert('Karakter belum punya nama. Isi nama dulu sebelum disimpan ke Library.');
+        return;
+      }
+      const lib = getLibrary();
+      const entry = { ...char, id: 'c' + Date.now() + Math.random().toString(36).slice(2, 7), savedAt: Date.now() };
+      lib.push(entry);
+      setLibrary(lib);
+      renderLibrary();
+      refreshLibrarySelects();
+      alert(`"${char.name}" disimpan ke Library.`);
+    }
+
+    function saveBuiltToLibrary() {
+      if (!builtCharacter) { alert('Belum ada karakter yang di-generate di tab ini.'); return; }
+      saveToLibrary(builtCharacter);
+    }
+
+    function saveRoomToLibrary() {
+      if (!roomCharacter) { alert('Belum ada karakter aktif di Character Room.'); return; }
+      saveToLibrary(roomCharacter);
+    }
+
+    function deleteFromLibrary(id) {
+      if (!confirm('Hapus karakter ini dari Library?')) return;
+      setLibrary(getLibrary().filter(c => c.id !== id));
+      renderLibrary();
+      refreshLibrarySelects();
+    }
+
+    function clearLibrary() {
+      if (!getLibrary().length) return;
+      if (!confirm('Hapus SEMUA karakter di Library? Tindakan ini tidak bisa dibatalkan.')) return;
+      setLibrary([]);
+      renderLibrary();
+      refreshLibrarySelects();
+    }
+
+    function renderLibrary() {
+      const wrap = document.getElementById('library-list');
+      if (!wrap) return;
+      const lib = getLibrary();
+      if (!lib.length) {
+        wrap.innerHTML = '<p class="reverse-hint">Belum ada karakter tersimpan.</p>';
+        return;
+      }
+      wrap.innerHTML = lib.slice().reverse().map(c => {
+        const badges = [c.mbti, c.zodiac, c.blood, c.magic].filter(Boolean).map(b => `<span class="badge">${b}</span>`).join('');
+        const meta = [c.race, c.gender].filter(Boolean).join(' · ');
+        return `<div class="char-slot" style="margin-bottom:12px">
+      <div class="slot-title" style="color:var(--text);font-family:var(--display);font-size:14px;font-weight:700;text-transform:none;letter-spacing:0">
+        ${c.name}${meta ? ` <span style="color:var(--muted2);font-weight:400;font-size:12px">· ${meta}</span>` : ''}
+        <button class="btn-copy" onclick="deleteFromLibrary('${c.id}')" style="background:none;color:var(--orange)">✕ Hapus</button>
+      </div>
+      ${badges ? `<div class="badge-row" style="padding:0;border:none;margin:8px 0">${badges}</div>` : ''}
+      ${c.backstory ? `<p style="font-size:12px;color:var(--muted2);line-height:1.6;margin:0">${c.backstory}</p>` : ''}
+    </div>`;
+      }).join('');
+    }
+
+    function refreshLibrarySelects() {
+      const lib = getLibrary();
+      document.querySelectorAll('[data-lib-group]').forEach(group => {
+        group.innerHTML = lib.length
+          ? lib.map(c => `<option value="lib:${c.id}">${c.name}</option>`).join('')
+          : '<option value="" disabled>— kosong —</option>';
+      });
+    }
+
+    /* ── SLOT AUTOFILL (shared by Relate/Voice) ── */
+    function charToSlotData(c) {
+      if (!c) return null;
+      const traits = [c.race, c.gender, c.mbti, c.zodiac, c.blood, c.magic, c.manualPersonality].filter(Boolean).join(', ');
+      return { name: c.name || '', traits, back: c.backstory || '' };
+    }
+
+    function handleSlotSelect(slot, value) {
+      if (!value) return;
+      let data = null;
+      if (value === 'quick:build') data = charToSlotData(builtCharacter);
+      else if (value === 'quick:room') data = charToSlotData(roomCharacter);
+      else if (value.startsWith('lib:')) data = charToSlotData(getLibrary().find(c => c.id === value.slice(4)));
+
+      if (!data) { alert('Karakter belum tersedia dari sumber itu.'); return; }
+
+      const ids = slot === 'v'
+        ? { name: 'v-name', traits: 'v-traits', back: 'v-back' }
+        : { name: `r${slot}-name`, traits: `r${slot}-traits`, back: `r${slot}-back` };
+
+      document.getElementById(ids.name).value = data.name;
+      document.getElementById(ids.traits).value = data.traits;
+      document.getElementById(ids.back).value = data.back;
+    }
+
+    /* ── RELASI KARAKTER ── */
+    async function analyzeRelation() {
+      const aName = document.getElementById('ra-name').value.trim();
+      const aTraits = document.getElementById('ra-traits').value.trim();
+      const aBack = document.getElementById('ra-back').value.trim();
+      const bName = document.getElementById('rb-name').value.trim();
+      const bTraits = document.getElementById('rb-traits').value.trim();
+      const bBack = document.getElementById('rb-back').value.trim();
+      const ctx = document.getElementById('r-ctx').value.trim();
+
+      if (!aName || !bName) { alert('Isi minimal nama untuk kedua karakter.'); return; }
+
+      setLoad('relate', true);
+
+      const prompt = `Kamu adalah relationship dynamics analyst untuk fiction writers.
+
+Karakter A:
+- Nama: ${aName}
+- Kepribadian/Sistem: ${aTraits || 'Tidak disebutkan'}
+- Backstory: ${aBack || 'Tidak ada info'}
+
+Karakter B:
+- Nama: ${bName}
+- Kepribadian/Sistem: ${bTraits || 'Tidak disebutkan'}
+- Backstory: ${bBack || 'Tidak ada info'}
+${ctx ? `\nKonteks relasi: ${ctx}` : ''}
+
+Analisis dinamika mereka:
+
+## Chemistry & Dinamika
+Bagaimana mereka biasanya berinteraksi — siapa yang memimpin percakapan, siapa yang mengalah, ritme hubungan mereka.
+
+## Potensi Konflik
+Titik gesekan paling mungkin muncul dari kombinasi kepribadian/backstory mereka.
+
+## Titik Temu Tersembunyi
+Kesamaan atau saling melengkapi yang mungkin tidak mereka sadari sendiri.
+
+## Contoh Interaksi Singkat
+Tulis 4-6 baris dialog bergantian antara ${aName} dan ${bName} yang menunjukkan dinamika di atas. Format: **${aName}:** ... / **${bName}:** ...
+
+## Ide Penggunaan Naratif
+2-3 saran plot atau adegan yang bisa lahir dari dinamika mereka.
+
+Gunakan bahasa Indonesia.`;
+
+      try {
+        const result = await callAI([{ role: 'user', content: prompt }]);
+        document.getElementById('relate-out-title').textContent = `${aName} × ${bName}`;
+        document.getElementById('relate-out-body').innerHTML = md2html(result);
+        const wrap = document.getElementById('relate-output');
+        wrap.classList.add('visible'); wrap.style.display = 'block';
+        setTimeout(() => wrap.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+      } catch (e) {
+        document.getElementById('relate-out-body').innerHTML = `<p style="color:var(--orange)">⚠ Error: ${e.message}</p>`;
+        document.getElementById('relate-output').classList.add('visible');
+        document.getElementById('relate-output').style.display = 'block';
+      }
+      setLoad('relate', false);
+    }
+
+    function clearRelate() {
+      ['ra-name', 'ra-traits', 'ra-back', 'rb-name', 'rb-traits', 'rb-back', 'r-ctx'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('relate-output').style.display = 'none';
+      document.getElementById('relate-output').classList.remove('visible');
+    }
+
+    /* ── CEK KONSISTENSI SUARA ── */
+    async function checkVoice() {
+      const name = document.getElementById('v-name').value.trim();
+      const traits = document.getElementById('v-traits').value.trim();
+      const back = document.getElementById('v-back').value.trim();
+      const scene = document.getElementById('v-scene').value.trim();
+
+      if (!name || !scene) { alert('Isi nama karakter dan cuplikan scene/dialog dulu.'); return; }
+
+      setLoad('voice', true);
+
+      const prompt = `Kamu adalah editor naskah fiksi yang spesialis character voice consistency.
+
+Profil Karakter:
+- Nama: ${name}
+- Kepribadian/Sistem: ${traits || 'Tidak disebutkan'}
+- Backstory: ${back || 'Tidak ada info'}
+
+Cuplikan yang mau dicek:
+"""
+${scene}
+"""
+
+Analisis apakah suara/perilaku ${name} di cuplikan itu konsisten dengan profilnya:
+
+## Verdict Keseluruhan
+Satu kalimat tegas: konsisten / ada beberapa momen janggal / banyak inkonsistensi.
+
+## Momen yang Terasa Pas
+Kutip singkat bagian yang pas dan jelaskan kenapa cocok dengan profilnya.
+
+## Momen yang Terasa Out of Character
+Kalau ada — kutip bagian spesifik, jelaskan kenapa terasa gak sesuai, dan kasih saran revisi singkat. Kalau tidak ada, katakan dengan jelas.
+
+## Saran Umum
+1-2 catatan tambahan untuk menjaga konsistensi suara karakter ini ke depannya.
+
+Gunakan bahasa Indonesia. Jujur dan spesifik — jangan basa-basi pujian kalau memang ada masalah.`;
+
+      try {
+        const result = await callAI([{ role: 'user', content: prompt }]);
+        document.getElementById('voice-out-body').innerHTML = md2html(result);
+        const wrap = document.getElementById('voice-output');
+        wrap.classList.add('visible'); wrap.style.display = 'block';
+        setTimeout(() => wrap.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+      } catch (e) {
+        document.getElementById('voice-out-body').innerHTML = `<p style="color:var(--orange)">⚠ Error: ${e.message}</p>`;
+        document.getElementById('voice-output').classList.add('visible');
+        document.getElementById('voice-output').style.display = 'block';
+      }
+      setLoad('voice', false);
+    }
+
+    function clearVoice() {
+      ['v-name', 'v-traits', 'v-back', 'v-scene'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('voice-output').style.display = 'none';
+      document.getElementById('voice-output').classList.remove('visible');
+    }
+
+    /* ── CHARACTER ARC TRACKER ── */
+    async function analyzeArc() {
+      const name = document.getElementById('arc-name').value.trim();
+      const before = document.getElementById('arc-before').value.trim();
+      const after = document.getElementById('arc-after').value.trim();
+      const beats = document.getElementById('arc-beats').value.trim();
+
+      if (!name || !before || !after) { alert('Isi nama karakter, kondisi awal, dan kondisi akhir dulu.'); return; }
+
+      setLoad('arc', true);
+
+      const prompt = `Kamu adalah story editor yang spesialis character arc.
+
+Karakter: ${name}
+
+Tahap Awal:
+"""
+${before}
+"""
+
+Tahap Akhir:
+"""
+${after}
+"""
+${beats ? `\nMomen kunci yang sudah ditulis penulis:\n"""\n${beats}\n"""` : ''}
+
+Analisis perjalanan karakter ini:
+
+## Ringkasan Pergeseran
+Jelaskan inti perubahan yang terjadi dalam 2-3 kalimat.
+
+## Plausibilitas
+Apakah transisi dari awal ke akhir ini believable? Kasih penilaian jujur — kalau terasa terlalu cepat/tiba-tiba, katakan dengan jelas dan jelaskan kenapa.
+
+## Beat Transisi yang Disarankan
+${beats ? 'Berdasarkan momen kunci yang sudah ada, apakah itu cukup? Kalau kurang, sarankan beat tambahan yang bisa mengisi gap.' : 'Sarankan 3-5 momen/adegan konkret yang bisa menjembatani perubahan ini secara believable, diurutkan dari awal ke akhir cerita.'}
+
+## Red Flags
+Kalau ada bagian dari perubahan ini yang berisiko terasa dipaksakan atau inkonsisten dengan kepribadian dasarnya, sebutkan di sini. Kalau tidak ada, katakan dengan jelas.
+
+Gunakan bahasa Indonesia.`;
+
+      try {
+        const result = await callAI([{ role: 'user', content: prompt }]);
+        document.getElementById('arc-out-title').textContent = `${name} — Arc Analysis`;
+        document.getElementById('arc-out-body').innerHTML = md2html(result);
+        const wrap = document.getElementById('arc-output');
+        wrap.classList.add('visible'); wrap.style.display = 'block';
+        setTimeout(() => wrap.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+      } catch (e) {
+        document.getElementById('arc-out-body').innerHTML = `<p style="color:var(--orange)">⚠ Error: ${e.message}</p>`;
+        document.getElementById('arc-output').classList.add('visible');
+        document.getElementById('arc-output').style.display = 'block';
+      }
+      setLoad('arc', false);
+    }
+
+    function clearArc() {
+      ['arc-name', 'arc-before', 'arc-after', 'arc-beats'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('arc-output').style.display = 'none';
+      document.getElementById('arc-output').classList.remove('visible');
+    }
+
+    /* ── UTILS ── */
+    function md2html(text) {
+      const lines = text.split('\n'), out = [];
+      let inUl = false;
+      for (let raw of lines) {
+        let line = raw
+          .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+          .replace(/\*([^*\n]+?)\*/g, '<em>$1</em>')
+          .replace(/`(.+?)`/g, '<code>$1</code>');
+        if (/^#{1,3} /.test(raw)) {
+          if (inUl) { out.push('</ul>'); inUl = false; }
+          out.push(`<h2>${raw.replace(/^#{1,3} /, '')}</h2>`);
+        } else if (/^[-•*] /.test(raw)) {
+          if (!inUl) { out.push('<ul>'); inUl = true; }
+          out.push(`<li>${line.replace(/^[-•*] /, '')}</li>`);
+        } else if (raw.trim() === '') {
+          if (inUl) { out.push('</ul>'); inUl = false; }
+        } else {
+          if (inUl) { out.push('</ul>'); inUl = false; }
+          out.push(`<p>${line}</p>`);
+        }
+      }
+      if (inUl) out.push('</ul>');
+      return out.join('');
+    }
+
+    function md2htmlInline(text) {
+      return text
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*([^*\n]+?)\*/g, '<em>$1</em>')
+        .replace(/\n/g, '<br>');
+    }
+
+    function setLoad(mode, on) {
+      const btn = document.getElementById(`btn-${mode}`);
+      const lbl = document.getElementById(`btn-${mode}-lbl`);
+      const dots = document.getElementById(`dots-${mode}`);
+      btn.disabled = on;
+      lbl.style.display = on ? 'none' : '';
+      dots.style.display = on ? 'flex' : 'none';
+    }
+
+    function copyOut(bodyId, btn) {
+      navigator.clipboard.writeText(document.getElementById(bodyId).innerText).then(() => {
+        btn.textContent = '✓ Copied';
+        setTimeout(() => btn.textContent = 'Copy', 2000);
+      });
+    }
+
+    function exportTxt() {
+      const title = document.getElementById('build-out-title').textContent;
+      const badges = [...document.querySelectorAll('#build-badges .badge')].map(b => b.textContent).join(' · ');
+      const body = document.getElementById('build-out-body').innerText;
+      const date = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+      const content = [
+        '═══════════════════════════════════════',
+        `  CHARAVORA — ${title.toUpperCase()}`,
+        '═══════════════════════════════════════',
+        badges ? `\nSistem: ${badges}` : '',
+        `Generated: ${date}`,
+        '\n───────────────────────────────────────\n',
+        body,
+        '\n───────────────────────────────────────',
+        'CharaVora · VoraLab (voralab.id)',
+      ].filter(Boolean).join('\n');
+      const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      Object.assign(document.createElement('a'), { href: url, download: `charavora-${slug}.txt` }).click();
+      URL.revokeObjectURL(url);
+    }
+
+    /* ── INIT ── */
+    refreshLibrarySelects();
+    renderLibrary();
+
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChatVora – Fake Chat Generator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+    body {
+      margin: 0;
+      padding: 16px;
+      background: linear-gradient(135deg, #0f172a 0%, #1a1f2e 100%);
+      color: #e5e7eb;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .header h1 {
+      font-size: 28px;
+      margin: 0 0 8px 0;
+      background: linear-gradient(120deg, #22c55e, #10b981);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .header p {
+      color: #9ca3af;
+      font-size: 14px;
+      margin: 0;
+    }
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: flex-start;
+    }
+    .panel {
+      background: #020617;
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid #1f2937;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    .panel h2 {
+      font-size: 16px;
+      margin: 0 0 16px 0;
+      color: #f3f4f6;
+    }
+    .field {
+      margin-bottom: 14px;
+    }
+    .field label {
+      display: block;
+      font-size: 12px;
+      margin-bottom: 6px;
+      color: #d1d5db;
+      font-weight: 500;
+    }
+    .field input,
+    .field textarea,
+    .field select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #374151;
+      background: #0f172a;
+      color: #e5e7eb;
+      font-size: 14px;
+      transition: all 0.2s ease;
+    }
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus {
+      outline: none;
+      border-color: #22c55e;
+      box-shadow: 0 0 0 3px rgba(34, 197, 86, 0.1);
+    }
+    .field textarea {
+      resize: vertical;
+      min-height: 50px;
+      font-family: inherit;
+    }
+    .divider {
+      height: 1px;
+      background: #1f2937;
+      margin: 16px 0;
+    }
+    .messages-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .messages-header h3 {
+      font-size: 14px;
+      margin: 0;
+      color: #f3f4f6;
+    }
+    .messages-container {
+      max-height: 320px;
+      overflow-y: auto;
+      padding-right: 4px;
+      margin-bottom: 12px;
+    }
+    .message-row {
+      display: grid;
+      grid-template-columns: 80px 1fr 70px 30px;
+      gap: 8px;
+      margin-bottom: 8px;
+      padding: 10px;
+      background: #0f172a;
+      border-radius: 10px;
+      border: 1px solid #1f2937;
+      align-items: flex-start;
+    }
+    .message-row select,
+    .message-row textarea,
+    .message-row input {
+      font-size: 12px;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #374151;
+      background: #020617;
+      color: #e5e7eb;
+    }
+    .message-row textarea {
+      min-height: 40px;
+      resize: vertical;
+    }
+    .delete-btn {
+      background: #7f1d1d;
+      color: #fca5a5;
+      border: none;
+      border-radius: 6px;
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s ease;
+    }
+    .delete-btn:hover {
+      background: #991b1b;
+    }
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-primary {
+      background: #22c55e;
+      color: #022c22;
+    }
+    .btn-primary:hover {
+      background: #16a34a;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(34, 197, 86, 0.3);
+    }
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid #374151;
+      color: #9ca3af;
+    }
+    .btn-secondary:hover {
+      border-color: #4b5563;
+      background: #1f2937;
+    }
+    .actions-bar {
+      display: flex;
+      gap: 8px;
+      justify-content: space-between;
+    }
+    .left-actions {
+      display: flex;
+      gap: 8px;
+    }
+    /* Phone Frame */
+    .phone-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .phone-frame {
+      width: 340px;
+      height: 600px;
+      border-radius: 40px;
+      background: #000;
+      border: 12px solid #111827;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), inset 0 0 0 1px #2d3748;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .phone-notch {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 140px;
+      height: 24px;
+      background: #000;
+      border-radius: 0 0 24px 24px;
+      z-index: 10;
+    }
+    .wa-header {
+      height: 56px;
+      background: #075e54;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fff;
+      font-size: 16px;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 5;
+    }
+    .wa-back {
+      cursor: default;
+      font-size: 18px;
+    }
+    .wa-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #22c55e, #10b981);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: #fff;
+    }
+    .wa-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .wa-name {
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .wa-status {
+      font-size: 11px;
+      opacity: 0.8;
+    }
+    .wa-icons {
+      display: flex;
+      gap: 12px;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    .wa-chat {
+      flex: 1;
+      background: #0b141a;
+      padding: 12px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overflow-y: auto;
+      position: relative;
+    }
+    .wa-bubble {
+      max-width: 80%;
+      border-radius: 12px;
+      padding: 8px 10px;
+      position: relative;
+      font-size: 13px;
+      line-height: 1.4;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      display: fit-content;
+    }
+    .wa-bubble.me {
+      margin-left: auto;
+      background: #005c4b;
+      color: #e5e7eb;
+      border-bottom-right-radius: 4px;
+    }
+    .wa-bubble.contact {
+      margin-right: auto;
+      background: #202c33;
+      color: #e5e7eb;
+      border-bottom-left-radius: 4px;
+    }
+    .wa-time {
+      font-size: 10px;
+      opacity: 0.6;
+      margin-top: 2px;
+      padding: 0 10px 4px 10px;
+    }
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #6b7280;
+      text-align: center;
+      padding: 20px;
+    }
+    .empty-state p {
+      margin: 0;
+      font-size: 13px;
+    }
+    @media (max-width: 1024px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+      .phone-wrapper {
+        order: -1;
+      }
+    }
+    @media (max-width: 640px) {
+      body {
+        padding: 8px;
+      }
+      .header h1 {
+        font-size: 22px;
+      }
+      .panel {
+        padding: 16px;
+      }
+      .phone-frame {
+        width: 300px;
+        height: 540px;
+        border-width: 10px;
+        border-radius: 32px;
+      }
+      .message-row {
+        grid-template-columns: 70px 1fr 60px 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>ChatVora</h1>
+      <p>Create fake WhatsApp chats for your content</p>
+    </div>
+
+    <div class="main-content">
+      <!-- Left Panel: Configuration -->
+      <div class="panel">
+        <h2>Configuration</h2>
+
+        <div class="field">
+          <label for="contactName">Contact Name</label>
+          <input
+            type="text"
+            id="contactName"
+            placeholder="e.g. Ayang, Boss, Mama"
+            value="Ayang"
+          />
+        </div>
+
+        <div class="field">
+          <label for="theme">Theme</label>
+          <select id="theme" disabled>
+            <option value="whatsapp">WhatsApp (v0)</option>
+          </select>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="messages-header">
+          <h3>Messages</h3>
+          <button class="btn btn-secondary" id="addMessageBtn" style="padding: 6px 10px; font-size: 12px;">
+            + Add
+          </button>
+        </div>
+
+        <div class="messages-container" id="messagesContainer">
+          <!-- Rows will be injected by JS -->
+        </div>
+
+        <div class="actions-bar">
+          <div class="left-actions">
+            <button class="btn btn-secondary" id="resetBtn">Reset</button>
+          </div>
+          <button class="btn btn-primary" id="downloadBtn">
+            ⬇ Download as PNG
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Panel: Phone Preview -->
+      <div class="phone-wrapper">
+        <div class="phone-frame">
+          <div class="phone-notch"></div>
+          <div class="wa-header">
+            <div class="wa-back">‹</div>
+            <div class="wa-avatar">💬</div>
+            <div class="wa-info">
+              <div class="wa-name" id="previewName">Ayang</div>
+              <div class="wa-status">online</div>
+            </div>
+            <div class="wa-icons">
+              <span>📞</span>
+              <span>🎥</span>
+              <span>⋮</span>
+            </div>
+          </div>
+          <div class="wa-chat" id="chatPreview">
+            <div class="empty-state">
+              <p>Add messages to see preview</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State
+    let messages = [
+      { sender: 'contact', text: 'Halo gw!', time: '10:30' },
+      { sender: 'me', text: 'Halo juga!', time: '10:31' },
+      { sender: 'contact', text: 'Apa kabar?', time: '10:32' },
+    ];
+
+    const contactNameInput = document.getElementById('contactName');
+    const messagesContainer = document.getElementById('messagesContainer');
+    const chatPreview = document.getElementById('chatPreview');
+    const previewName = document.getElementById('previewName');
+    const addMessageBtn = document.getElementById('addMessageBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    // Render message rows
+    function renderMessageRows() {
+      messagesContainer.innerHTML = '';
+      messages.forEach((msg, idx) => {
+        const row = document.createElement('div');
+        row.className = 'message-row';
+        row.innerHTML = `
+          <select class="sender-select" data-idx="${idx}">
+            <option value="me" ${msg.sender === 'me' ? 'selected' : ''}>Me</option>
+            <option value="contact" ${msg.sender === 'contact' ? 'selected' : ''}>Contact</option>
+          </select>
+          <textarea class="text-input" data-idx="${idx}" placeholder="Message...">${msg.text}</textarea>
+          <input type="time" class="time-input" data-idx="${idx}" value="${msg.time}" />
+          <button class="delete-btn" data-idx="${idx}">✕</button>
+        `;
+        messagesContainer.appendChild(row);
+      });
+
+      // Attach event listeners
+      document.querySelectorAll('.sender-select').forEach(select => {
+        select.addEventListener('change', (e) => {
+          messages[parseInt(e.target.dataset.idx)].sender = e.target.value;
+          updatePreview();
+        });
+      });
+
+      document.querySelectorAll('.text-input').forEach(input => {
+        input.addEventListener('input', (e) => {
+          messages[parseInt(e.target.dataset.idx)].text = e.target.value;
+          updatePreview();
+        });
+      });
+
+      document.querySelectorAll('.time-input').forEach(input => {
+        input.addEventListener('change', (e) => {
+          messages[parseInt(e.target.dataset.idx)].time = e.target.value;
+          updatePreview();
+        });
+      });
+
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idx = parseInt(e.target.dataset.idx);
+          messages.splice(idx, 1);
+          renderMessageRows();
+          updatePreview();
+        });
+      });
+    }
+
+    // Update preview
+    function updatePreview() {
+      previewName.textContent = contactNameInput.value || 'Contact';
+
+      if (messages.length === 0) {
+        chatPreview.innerHTML = '<div class="empty-state"><p>Add messages to see preview</p></div>';
+        return;
+      }
+
+      chatPreview.innerHTML = messages
+        .map(
+          (msg) => `
+        <div class="wa-bubble ${msg.sender}">
+          ${msg.text}
+          <div class="wa-time">${msg.time}</div>
+        </div>
+      `
+        )
+        .join('');
+    }
+
+    // Add message
+    addMessageBtn.addEventListener('click', () => {
+      messages.push({ sender: 'me', text: '', time: '12:00' });
+      renderMessageRows();
+      updatePreview();
+    });
+
+    // Reset
+    resetBtn.addEventListener('click', () => {
+      messages = [];
+      contactNameInput.value = '';
+      renderMessageRows();
+      updatePreview();
+    });
+
+    // Contact name change
+    contactNameInput.addEventListener('input', updatePreview);
+
+    // Download as PNG
+    downloadBtn.addEventListener('click', async () => {
+      const phoneFrame = document.querySelector('.phone-frame');
+
+      // Check if html2canvas is available, if not load it
+      if (typeof html2canvas === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        document.head.appendChild(script);
+        script.onload = () => captureAndDownload(phoneFrame);
+      } else {
+        captureAndDownload(phoneFrame);
+      }
+    });
+
+    function captureAndDownload(element) {
+      html2canvas(element, {
+        backgroundColor: '#000',
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      }).then((canvas) => {
+        const link = document.createElement('a');
+        const timestamp = new Date().toISOString().slice(0, 10);
+        link.href = canvas.toDataURL('image/png');
+        link.download = `chatvora-${timestamp}.png`;
+        link.click();
+      });
+    }
+
+    // Initialize
+    renderMessageRows();
+    updatePreview();
+  </script>
+</body>
+</html>

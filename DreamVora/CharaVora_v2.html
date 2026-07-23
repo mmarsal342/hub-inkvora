@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CharaVora — VoraLab</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ── */
+:root {
+  --bg:#0a0a0a;--surface:#111;--surface2:#1a1a1a;
+  --border:#252525;--border2:#333;
+  --lime:#e8ff47;--orange:#ff6b35;
+  --text:#efefef;--muted:#555;--muted2:#888;
+  --display:'Syne',sans-serif;--mono:'DM Mono',monospace;
+}
+:root.light {
+  --bg:#f5f4ef;--surface:#fff;--surface2:#f0efe9;
+  --border:#e0ddd5;--border2:#ccc9bf;
+  --text:#1a1a1a;--muted:#bbb;--muted2:#777;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--display);min-height:100vh;padding:28px 24px 64px;max-width:900px;margin:0 auto}
+
+/* ── HEADER ── */
+header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:12px}
+.wordmark{font-size:22px;font-weight:800;letter-spacing:-1px;line-height:1}
+.wordmark em{color:var(--lime);font-style:normal}
+.sub{font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:2.5px;margin-top:5px}
+.header-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.icon-btn{background:none;border:1px solid var(--border2);color:var(--muted2);font-size:12px;padding:5px 10px;border-radius:6px;cursor:pointer;transition:all .15s;font-family:var(--mono);white-space:nowrap}
+.icon-btn:hover{color:var(--text);border-color:var(--muted2)}
+.icon-btn.active{color:var(--lime);border-color:rgba(232,255,71,.35)}
+
+/* ── SETTINGS ── */
+.settings-panel{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px;display:none}
+.settings-panel.open{display:block}
+.settings-title{font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px}
+.settings-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.settings-note{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:10px;line-height:1.6}
+.settings-note span{color:var(--lime)}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:2px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:3px;width:fit-content;margin-bottom:32px;flex-wrap:wrap}
+.tab-btn{background:none;border:none;color:var(--muted2);font-family:var(--display);font-size:13px;font-weight:600;padding:9px 20px;border-radius:8px;cursor:pointer;transition:all .15s}
+.tab-btn.active{background:var(--lime);color:#0a0a0a}
+.tab-btn:hover:not(.active){color:var(--text);background:var(--surface2)}
+.panel{display:none}.panel.active{display:block}
+
+/* ── FORM ── */
+.sec-label{font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:3px;margin-bottom:14px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field-label{font-family:var(--mono);font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:1.5px;display:flex;align-items:center;gap:6px}
+.sys-dot{width:5px;height:5px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.select-wrap{position:relative}
+.select-wrap::after{content:'▾';position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:11px}
+select{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;padding:9px 32px 9px 11px;border-radius:7px;outline:none;appearance:none;cursor:pointer;transition:border-color .15s}
+select:focus{border-color:var(--lime)}
+select option{background:var(--surface)}
+textarea,input[type=text],input[type=password]{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:12px;border-radius:7px;outline:none;transition:border-color .15s;line-height:1.7;resize:vertical}
+textarea:focus,input[type=text]:focus,input[type=password]:focus{border-color:var(--lime)}
+textarea::placeholder,input::placeholder{color:var(--muted)}
+.divider{height:1px;background:var(--border);margin:20px 0}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px}
+.sel-count{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:18px}
+.sel-count span{color:var(--lime)}
+
+/* ── BUTTONS ── */
+.actions{display:flex;gap:10px;align-items:center;margin-top:18px;flex-wrap:wrap}
+.btn-primary{background:var(--lime);color:#0a0a0a;border:none;font-family:var(--display);font-size:13px;font-weight:700;padding:11px 28px;border-radius:7px;cursor:pointer;transition:opacity .15s;display:flex;align-items:center;gap:8px}
+.btn-primary:hover{opacity:.85}.btn-primary:disabled{opacity:.35;cursor:not-allowed}
+.btn-ghost{background:none;color:var(--muted2);border:1px solid var(--border);font-family:var(--display);font-size:12px;font-weight:600;padding:10px 18px;border-radius:7px;cursor:pointer;transition:all .15s}
+.btn-ghost:hover{color:var(--text);border-color:var(--border2)}
+.btn-outline-lime{background:rgba(232,255,71,.06);color:var(--lime);border:1px solid rgba(232,255,71,.25);font-family:var(--display);font-size:12px;font-weight:700;padding:10px 18px;border-radius:7px;cursor:pointer;transition:all .15s}
+.btn-outline-lime:hover{background:rgba(232,255,71,.12)}
+.dots{display:inline-flex;gap:3px;align-items:center}
+.dots span{width:5px;height:5px;border-radius:50%;background:#0a0a0a;animation:pulse 1.2s ease-in-out infinite}
+.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+
+/* ── OUTPUT WRAPPER ── */
+.output-wrap{margin-top:32px;display:none}.output-wrap.visible{display:block}
+.output-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.output-topbar{background:var(--surface2);border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.output-title{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:3px;color:var(--lime)}
+.topbar-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn-copy{background:var(--border);color:var(--muted2);border:none;font-family:var(--mono);font-size:11px;padding:5px 12px;border-radius:5px;cursor:pointer;transition:all .15s}
+.btn-copy:hover{background:var(--border2);color:var(--text)}
+.badge-row{padding:12px 18px;display:flex;flex-wrap:wrap;gap:6px;border-bottom:1px solid var(--border)}
+.badge-row:empty{display:none}
+.badge{font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:4px;border:1px solid var(--border2);color:var(--lime);letter-spacing:.5px;background:rgba(232,255,71,.04)}
+.carry-btn-wrap{padding:14px 18px;border-top:1px solid var(--border);background:var(--surface2)}
+
+/* ── SECTION BLOCKS (Build output) ── */
+.section-block{border-bottom:1px solid var(--border);padding:18px 22px}
+.section-block:last-child{border-bottom:none}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.section-title{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:2.5px;color:var(--lime)}
+.section-content p{font-size:14px;line-height:1.85;color:var(--text);margin-bottom:10px;opacity:.9}
+.section-content strong{color:var(--lime);font-weight:600}
+.section-content em{color:var(--muted2);font-style:italic}
+.section-content ul{padding-left:18px;margin-bottom:10px}
+.section-content ul li{font-size:14px;line-height:1.8;color:var(--text);margin-bottom:4px;opacity:.9}
+.btn-regen{background:none;border:1px solid var(--border2);color:var(--muted2);font-size:13px;width:28px;height:28px;border-radius:5px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.btn-regen:hover{color:var(--lime);border-color:rgba(232,255,71,.35)}
+.btn-regen:disabled{opacity:.35;cursor:not-allowed}
+
+/* ── FLAT OUTPUT BODY (Reverse, Analyze) ── */
+.output-body{padding:26px 22px}
+.output-body h2{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:2.5px;color:var(--lime);margin:28px 0 10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.output-body h2:first-child{margin-top:0}
+.output-body p{font-size:14px;line-height:1.85;color:var(--text);margin-bottom:10px;opacity:.9}
+.output-body strong{color:var(--lime);font-weight:600}
+.output-body em{color:var(--muted2);font-style:italic}
+.output-body ul{padding-left:18px;margin-bottom:10px}
+.output-body ul li{font-size:14px;line-height:1.8;color:var(--text);margin-bottom:4px;opacity:.9}
+
+/* ── CHARACTER ROOM ── */
+.pov-row{display:flex;align-items:center;gap:8px;margin-bottom:20px}
+.pov-label{font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px}
+.pov-btn{background:none;border:1px solid var(--border2);color:var(--muted2);font-family:var(--mono);font-size:11px;padding:5px 14px;border-radius:5px;cursor:pointer;transition:all .15s}
+.pov-btn.active{background:var(--lime);color:#0a0a0a;border-color:var(--lime);font-weight:700}
+.pov-btn:hover:not(.active){color:var(--text);border-color:var(--muted2)}
+.room-source{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.manual-form{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:20px;display:none}
+.manual-form.open{display:block}
+.chat-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:none}
+.chat-wrap.open{display:flex;flex-direction:column}
+.chat-header{background:var(--surface2);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.chat-char-info{display:flex;align-items:center;gap:10px}
+.chat-char-name{font-weight:700;font-size:14px}
+.chat-char-badge{font-family:var(--mono);font-size:9px;color:var(--muted);border:1px solid var(--border2);padding:2px 8px;border-radius:3px}
+.chat-messages{height:380px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+.chat-msg{display:flex;max-width:85%}
+.chat-msg.user{align-self:flex-end;justify-content:flex-end}
+.chat-msg.ai{align-self:flex-start}
+.chat-bubble{padding:11px 14px;border-radius:12px;font-size:14px;line-height:1.65}
+.chat-msg.user .chat-bubble{background:rgba(232,255,71,.08);border:1px solid rgba(232,255,71,.18);color:var(--text)}
+.chat-msg.ai .chat-bubble{background:var(--surface2);border:1px solid var(--border);color:var(--text)}
+.chat-msg.ai .chat-bubble em{color:var(--muted2);font-style:italic}
+.chat-input-row{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--border);background:var(--surface2)}
+.chat-input-row textarea{resize:none;min-height:44px;max-height:120px;border-radius:8px;font-size:13px;padding:10px 12px;flex:1;line-height:1.5}
+.chat-send{background:var(--lime);color:#0a0a0a;border:none;font-family:var(--display);font-weight:700;font-size:12px;padding:10px 18px;border-radius:8px;cursor:pointer;transition:opacity .15s;align-self:flex-end;white-space:nowrap}
+.chat-send:hover{opacity:.85}.chat-send:disabled{opacity:.35;cursor:not-allowed}
+.typing-bubble{background:var(--surface2);border:1px solid var(--border);padding:11px 14px;border-radius:12px;display:inline-flex;gap:4px;align-items:center}
+.typing-bubble span{width:5px;height:5px;border-radius:50%;background:var(--muted2);animation:pulse 1.2s ease-in-out infinite}
+.typing-bubble span:nth-child(2){animation-delay:.2s}.typing-bubble span:nth-child(3){animation-delay:.4s}
+.reverse-hint{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6}
+
+/* ── ANALYZE TEXT ── */
+.word-counter-wrap{position:relative}
+.word-counter{font-family:var(--mono);font-size:10px;margin-top:6px;min-height:14px}
+.word-counter.ok{color:var(--muted2)}
+.word-counter.warn{color:var(--orange)}
+.word-counter.over{color:#ff4444;font-weight:700}
+.analyze-hint{font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.7;margin-bottom:16px;padding:10px 12px;border:1px solid var(--border);border-radius:6px}
+.analyze-hint strong{color:var(--muted2)}
+
+/* ── FOOTER ── */
+footer{margin-top:60px;border-top:1px solid var(--border);padding:24px 0 16px}
+.footer-inner{display:flex;flex-direction:column;gap:10px}
+.footer-top{display:flex;align-items:center;justify-content:space-between}
+.footer-brand{font-size:14px;font-weight:800;letter-spacing:-.5px}
+.footer-brand em{color:var(--lime);font-style:normal}
+.footer-link{font-family:var(--mono);font-size:11px;color:var(--muted2);text-decoration:none;border-bottom:1px solid var(--border2);padding-bottom:1px;transition:color .15s}
+.footer-link:hover{color:var(--lime)}
+.footer-disclaimer{font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.7;max-width:680px}
+.footer-bottom{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;font-family:var(--mono);font-size:10px;color:var(--muted);padding-top:8px;border-top:1px solid var(--border)}
+.footer-grace{color:var(--muted2)}
+
+/* ── LIGHT MODE OVERRIDES ── */
+:root.light .dots span{background:var(--text)}
+:root.light .wordmark em,:root.light .footer-brand em{color:#5c6b00}
+:root.light .sel-count span,:root.light .output-title,:root.light .output-body h2,
+:root.light .output-body strong,:root.light .section-title,:root.light .section-content strong,
+:root.light .badge,:root.light .settings-note span,:root.light .btn-outline-lime{color:#5c6b00}
+:root.light .badge{border-color:rgba(92,107,0,.3);background:rgba(92,107,0,.06)}
+:root.light .btn-outline-lime{border-color:rgba(92,107,0,.35);background:rgba(92,107,0,.06)}
+:root.light .btn-outline-lime:hover{background:rgba(92,107,0,.12)}
+:root.light .btn-regen:hover{color:#5c6b00;border-color:rgba(92,107,0,.35)}
+:root.light .pov-btn.active{background:var(--lime);color:#0a0a0a}
+:root.light .chat-send{color:#0a0a0a}
+
+/* ── RESPONSIVE ── */
+@media(max-width:580px){
+  body{padding:16px 14px 48px}
+  header{flex-direction:column;align-items:flex-start}
+  .two-col,.three-col{grid-template-columns:1fr 1fr}
+  .chat-messages{height:300px}
+  .tabs{gap:1px}
+  .tab-btn{padding:8px 14px;font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="wordmark">Chara<em>Vora</em></div>
+    <div class="sub">Character Builder · VoraLab</div>
+  </div>
+  <div class="header-actions">
+    <button class="icon-btn" onclick="toggleTheme()" id="theme-btn">☀ Light</button>
+    <button class="icon-btn" onclick="toggleSettings()" id="settings-btn">⚙ AI Settings</button>
+    <a href="https://voralab.id" target="_blank" class="icon-btn" style="text-decoration:none">voralab.id ↗</a>
+  </div>
+</header>
+
+<!-- SETTINGS -->
+<div class="settings-panel" id="settings-panel">
+  <div class="settings-title">AI Provider Settings</div>
+  <div class="settings-grid">
+    <div class="field">
+      <div class="field-label">Provider</div>
+      <div class="select-wrap">
+        <select id="ai-provider" onchange="onProviderChange()">
+          <option value="gemini">Gemini (Default · Gratis di Canvas)</option>
+          <option value="openai">OpenAI</option>
+          <option value="claude">Claude (Anthropic)</option>
+          <option value="deepseek">Deepseek</option>
+        </select>
+      </div>
+    </div>
+    <div class="field" id="key-field" style="display:none">
+      <div class="field-label">API Key</div>
+      <input type="password" id="ai-key" placeholder="Masukkan API key kamu...">
+    </div>
+    <div class="field">
+      <div class="field-label">Model</div>
+      <div class="select-wrap">
+        <select id="ai-model">
+          <option value="gemini-2.5-flash-preview-05-20">Gemini 2.5 Flash (Recommended)</option>
+          <option value="gemini-2.5-pro-preview-06-05">Gemini 2.5 Pro</option>
+          <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="settings-note"><span>Default (Gemini Canvas):</span> API key otomatis tersedia, gratis. BYOK: key hanya dikirim langsung ke provider pilihanmu — tidak disimpan di server manapun.</div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('build')">⬡ Build Character</button>
+  <button class="tab-btn" onclick="switchTab('reverse')">◎ Reverse Lookup</button>
+  <button class="tab-btn" onclick="switchTab('room')">✦ Character Room</button>
+  <button class="tab-btn" onclick="switchTab('analyze')">⊕ Analyze Text</button>
+</div>
+
+<!-- ══ BUILD CHARACTER ══ -->
+<div class="panel active" id="panel-build">
+
+  <div class="two-col">
+    <div class="field">
+      <div class="field-label"><span class="sys-dot"></span>Nama Karakter</div>
+      <input type="text" id="b-name" placeholder="Nama karakter (opsional)...">
+    </div>
+    <div class="field">
+      <div class="field-label"><span class="sys-dot"></span>Ras / Spesies</div>
+      <input type="text" id="b-race" placeholder="Manusia, Elf, Android...">
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="field">
+      <div class="field-label"><span class="sys-dot"></span>Gender</div>
+      <div class="select-wrap">
+        <select id="b-gender">
+          <option value="">— tidak ditentukan —</option>
+          <option>Laki-laki</option><option>Perempuan</option>
+          <option>Non-binary</option><option>Lainnya</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-label"><span class="sys-dot"></span>Umur / Rentang Usia</div>
+      <input type="text" id="b-umur" placeholder="17, remaja, paruh baya, tua...">
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="field">
+      <div class="field-label"><span class="sys-dot"></span>Peran dalam Cerita</div>
+      <div class="select-wrap">
+        <select id="b-peran">
+          <option value="">— tidak ditentukan —</option>
+          <option>Protagonis</option><option>Antagonis</option><option>Anti-hero</option>
+          <option>Side Character</option><option>Mentor</option>
+          <option>Love Interest</option><option>Rival</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-label"><span class="sys-dot"></span>Motivasi Utama</div>
+      <input type="text" id="b-motivasi" placeholder="Satu kalimat — apa yang dia kejar...">
+    </div>
+  </div>
+
+  <div class="sec-label" style="margin-top:4px">Sistem Kepribadian</div>
+  <div class="three-col">
+    <div class="field">
+      <div class="field-label"><span class="sys-dot"></span>MBTI</div>
+      <div class="select-wrap">
+        <select id="b-mbti" onchange="updateBuildCount()">
+          <option value="">— skip —</option>
+          <optgroup label="Analyst"><option>INTJ</option><option>INTP</option><option>ENTJ</option><option>ENTP</option></optgroup>
+          <optgroup label="Diplomat"><option>INFJ</option><option>INFP</option><option>ENFJ</option><option>ENFP</option></optgroup>
+          <optgroup label="Sentinel"><option>ISTJ</option><option>ISFJ</option><option>ESTJ</option><option>ESFJ</option></optgroup>
+          <optgroup label="Explorer"><option>ISTP</option><option>ISFP</option><option>ESTP</option><option>ESFP</option></optgroup>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-label"><span class="sys-dot"></span>Zodiak</div>
+      <div class="select-wrap">
+        <select id="b-zodiac" onchange="updateBuildCount()">
+          <option value="">— skip —</option>
+          <option>Aries ♈</option><option>Taurus ♉</option><option>Gemini ♊</option><option>Cancer ♋</option>
+          <option>Leo ♌</option><option>Virgo ♍</option><option>Libra ♎</option><option>Scorpio ♏</option>
+          <option>Sagittarius ♐</option><option>Capricorn ♑</option><option>Aquarius ♒</option><option>Pisces ♓</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-label"><span class="sys-dot"></span>Golongan Darah</div>
+      <div class="select-wrap">
+        <select id="b-blood" onchange="updateBuildCount()">
+          <option value="">— skip —</option>
+          <option>Gol. Darah A</option><option>Gol. Darah B</option>
+          <option>Gol. Darah AB</option><option>Gol. Darah O</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="sel-count" id="build-count"><span>0</span> sistem kepribadian dipilih</div>
+
+  <div class="field" style="margin-bottom:6px">
+    <div class="field-label" style="margin-bottom:7px">
+      <span class="sys-dot"></span>Backstory / Konteks
+      <span style="color:var(--muted);font-size:9px;text-transform:none;letter-spacing:0;font-style:italic">(opsional)</span>
+    </div>
+    <textarea id="b-ctx" rows="3" placeholder="Misal: villain utama di dunia steampunk, masa lalu sebagai tentara, kehilangan adiknya dalam perang..."></textarea>
+  </div>
+
+  <div class="actions">
+    <button class="btn-primary" id="btn-build" onclick="buildChar()">
+      <span id="btn-build-lbl">Generate Character</span>
+      <div class="dots" id="dots-build" style="display:none"><span></span><span></span><span></span></div>
+    </button>
+    <button class="btn-ghost" onclick="randomizeSystems()">🎲 Randomize</button>
+    <button class="btn-ghost" onclick="clearBuild()">Clear</button>
+  </div>
+
+  <div class="output-wrap" id="build-output">
+    <div class="output-card">
+      <div class="output-topbar">
+        <div class="output-title" id="build-out-title">Character Profile</div>
+        <div class="topbar-right">
+          <button class="btn-copy" onclick="copyBuildOut(this)">Copy All</button>
+          <button class="btn-copy" onclick="exportTxt()" style="background:rgba(232,255,71,.1);color:var(--lime);border:1px solid rgba(232,255,71,.25)">↓ Export .txt</button>
+        </div>
+      </div>
+      <div class="badge-row" id="build-badges"></div>
+      <div id="build-sections"></div>
+      <div class="carry-btn-wrap">
+        <button class="btn-outline-lime" onclick="carryToRoom()">✦ Bawa ke Character Room →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ REVERSE LOOKUP ══ -->
+<div class="panel" id="panel-reverse">
+  <div class="sec-label">Deskripsikan Kepribadian Karaktermu</div>
+  <div class="field" style="margin-bottom:10px">
+    <textarea id="txt-rev" rows="7" placeholder="Tulis sebebas mungkin... misal: 'Dia sangat keras kepala tapi setia sampai mati buat orang-orang yang dia sayang. Punya dark side yang disembunyiin rapat-rapat. Perfeksionis, suka kontrol segala hal, tapi sebenarnya takut ditinggalkan...'"></textarea>
+  </div>
+  <p class="reverse-hint">AI akan match ke MBTI, Zodiak, dan Golongan Darah — sekaligus analisis kenapa kombinasi itu cocok.</p>
+  <div class="actions" style="margin-top:16px">
+    <button class="btn-primary" id="btn-rev" onclick="reverseMatch()">
+      <span id="btn-rev-lbl">Match Personality</span>
+      <div class="dots" id="dots-rev" style="display:none"><span></span><span></span><span></span></div>
+    </button>
+  </div>
+  <div class="output-wrap" id="rev-output">
+    <div class="output-card">
+      <div class="output-topbar">
+        <div class="output-title">Reverse Match Result</div>
+        <div class="topbar-right"><button class="btn-copy" onclick="copyOut('rev-out-body',this)">Copy</button></div>
+      </div>
+      <div class="output-body" id="rev-out-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CHARACTER ROOM ══ -->
+<div class="panel" id="panel-room">
+
+  <div class="pov-row">
+    <span class="pov-label">POV:</span>
+    <button class="pov-btn active" onclick="setPOV(1)">Orang Pertama</button>
+    <button class="pov-btn" onclick="setPOV(3)">Orang Ketiga</button>
+  </div>
+
+  <div class="sec-label">Pilih Karakter</div>
+  <div class="room-source">
+    <button class="btn-outline-lime" id="btn-from-build" onclick="useBuiltChar()" style="display:none">⬡ Dari Build Character</button>
+    <button class="btn-ghost" onclick="showManualForm()">+ Input Manual</button>
+  </div>
+
+  <div class="manual-form" id="manual-form">
+    <div class="sec-label">Profil Karakter</div>
+    <div class="two-col" style="margin-bottom:12px">
+      <div class="field"><div class="field-label"><span class="sys-dot"></span>Nama</div><input type="text" id="m-name" placeholder="Nama karakter..."></div>
+      <div class="field"><div class="field-label"><span class="sys-dot"></span>Gender</div>
+        <div class="select-wrap"><select id="m-gender"><option value="">— tidak ditentukan —</option><option>Laki-laki</option><option>Perempuan</option><option>Non-binary</option></select></div>
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:10px">
+      <div class="field-label" style="margin-bottom:7px"><span class="sys-dot"></span>Kepribadian</div>
+      <textarea id="m-personality" rows="2" placeholder="MBTI, sifat-sifat, atau deskripsi bebas... misal: INFJ, melankolis, perfeksionis"></textarea>
+    </div>
+    <div class="field" style="margin-bottom:14px">
+      <div class="field-label" style="margin-bottom:7px"><span class="sys-dot"></span>Backstory <span style="color:var(--muted);font-size:9px;text-transform:none;letter-spacing:0;font-style:italic">(opsional)</span></div>
+      <textarea id="m-backstory" rows="2" placeholder="Latar belakang singkat..."></textarea>
+    </div>
+    <button class="btn-primary" onclick="startRoomManual()">Mulai Character Room →</button>
+  </div>
+
+  <div class="chat-wrap" id="chat-wrap">
+    <div class="chat-header">
+      <div class="chat-char-info">
+        <div class="chat-char-name" id="chat-char-name">—</div>
+        <div class="chat-char-badge" id="chat-char-badge">—</div>
+      </div>
+      <button class="icon-btn" onclick="clearChat()">✕ Reset</button>
+    </div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-input-row">
+      <textarea id="chat-input" rows="1" placeholder="Ketik pesan atau skenario... (Enter = kirim, Shift+Enter = baris baru)" onkeydown="handleChatKey(event)"></textarea>
+      <button class="chat-send" id="chat-send" onclick="sendChat()">Kirim</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ANALYZE TEXT ══ -->
+<div class="panel" id="panel-analyze">
+
+  <div class="analyze-hint">
+    <strong>Cara pakai:</strong> Paste teks cerita (cerpen atau beberapa bab), masukkan nama karakter yang ingin dianalisis, lalu klik Analyze. AI akan cari bukti kepribadian langsung dari teks.<br>
+    <strong>Batas teks:</strong> Maksimal ~5.000 kata untuk hasil terbaik. Teks lebih panjang bisa dipecah per karakter atau per beberapa bab.
+  </div>
+
+  <div class="field" style="margin-bottom:12px">
+    <div class="field-label"><span class="sys-dot"></span>Nama Karakter yang Dianalisis</div>
+    <input type="text" id="analyze-char" placeholder="Nama karakter dalam teks..." style="margin-top:6px">
+  </div>
+
+  <div class="field word-counter-wrap" style="margin-bottom:6px">
+    <div class="field-label" style="margin-bottom:7px"><span class="sys-dot"></span>Teks Cerita</div>
+    <textarea id="analyze-text" rows="12" placeholder="Paste cerpen, chapter, atau beberapa chapter di sini..." oninput="updateWordCount()"></textarea>
+    <div class="word-counter" id="word-counter"></div>
+  </div>
+
+  <div class="actions" style="margin-top:12px">
+    <button class="btn-primary" id="btn-analyze" onclick="analyzeText()">
+      <span id="btn-analyze-lbl">Analyze Character</span>
+      <div class="dots" id="dots-analyze" style="display:none"><span></span><span></span><span></span></div>
+    </button>
+  </div>
+
+  <div class="output-wrap" id="analyze-output">
+    <div class="output-card">
+      <div class="output-topbar">
+        <div class="output-title" id="analyze-out-title">Character Analysis</div>
+        <div class="topbar-right"><button class="btn-copy" onclick="copyOut('analyze-out-body',this)">Copy</button></div>
+      </div>
+      <div class="output-body" id="analyze-out-body"></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <span class="footer-brand">Chara<em>Vora</em></span>
+      <a href="https://voralab.id" target="_blank" class="footer-link">voralab.id ↗</a>
+    </div>
+    <p class="footer-disclaimer">Tool kreatif untuk penulis fiksi. Sistem kepribadian (MBTI, Zodiak, dll) digunakan sebagai framework naratif — bukan asesmen psikologis ilmiah. Output AI adalah titik awal, bukan jawaban final.</p>
+    <div class="footer-bottom">
+      <span>© 2026 VoraLab · PT Modular Media Asia</span>
+      <span class="footer-grace">Built by the grace of God</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ── CONFIG ── */
+const CANVAS_KEY = "";
+let builtCharacter = null;
+let chatHistory    = [];
+let roomCharacter  = null;
+let currentPOV     = 1;
+
+/* ── THEME ── */
+function toggleTheme() {
+  const isLight = document.documentElement.classList.toggle('light');
+  document.getElementById('theme-btn').textContent = isLight ? '☾ Dark' : '☀ Light';
+}
+
+/* ── SETTINGS ── */
+function toggleSettings() {
+  const panel = document.getElementById('settings-panel');
+  const btn   = document.getElementById('settings-btn');
+  panel.classList.toggle('open');
+  btn.classList.toggle('active', panel.classList.contains('open'));
+}
+
+const MODELS = {
+  gemini:   ['gemini-2.5-flash-preview-05-20|Gemini 2.5 Flash (Recommended)','gemini-2.5-pro-preview-06-05|Gemini 2.5 Pro','gemini-2.0-flash|Gemini 2.0 Flash'],
+  openai:   ['gpt-4o|GPT-4o','gpt-4o-mini|GPT-4o Mini','gpt-4-turbo|GPT-4 Turbo'],
+  claude:   ['claude-sonnet-4-6|Claude Sonnet 4.6','claude-haiku-4-5-20251001|Claude Haiku 4.5'],
+  deepseek: ['deepseek-chat|Deepseek Chat','deepseek-reasoner|Deepseek Reasoner'],
+};
+
+function onProviderChange() {
+  const p = document.getElementById('ai-provider').value;
+  document.getElementById('ai-model').innerHTML = MODELS[p].map(m => {
+    const [v, l] = m.split('|'); return `<option value="${v}">${l}</option>`;
+  }).join('');
+  document.getElementById('key-field').style.display = p === 'gemini' ? 'none' : 'block';
+}
+
+/* ── AI CALLER ── */
+async function callAI(messages, systemPrompt = '') {
+  const provider = document.getElementById('ai-provider').value;
+  const model    = document.getElementById('ai-model').value;
+  const key      = document.getElementById('ai-key')?.value?.trim() || CANVAS_KEY;
+
+  if (provider === 'gemini') {
+    const body = {
+      contents: messages.map(m => ({ role: m.role === 'assistant' ? 'model' : m.role, parts: [{ text: m.content }] })),
+      generationConfig: { temperature: 1.0, maxOutputTokens: 3000 }
+    };
+    if (systemPrompt) body.system_instruction = { parts: [{ text: systemPrompt }] };
+    const res  = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.candidates[0].content.parts[0].text;
+  }
+  if (provider === 'openai' || provider === 'deepseek') {
+    const base = provider === 'openai' ? 'https://api.openai.com' : 'https://api.deepseek.com';
+    const msgs = systemPrompt ? [{ role: 'system', content: systemPrompt }, ...messages] : messages;
+    const res  = await fetch(`${base}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+      body: JSON.stringify({ model, messages: msgs, max_tokens: 3000, temperature: 1.0 })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.choices[0].message.content;
+  }
+  if (provider === 'claude') {
+    const res  = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({ model, max_tokens: 3000, system: systemPrompt || undefined, messages })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+    return data.content[0].text;
+  }
+}
+
+/* ── TABS ── */
+function switchTab(t) {
+  const ids = ['build','reverse','room','analyze'];
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', ids[i] === t));
+  ids.forEach(id => document.getElementById(`panel-${id}`).classList.toggle('active', id === t));
+}
+
+/* ══ BUILD CHARACTER ══ */
+function randomizeSystems() {
+  const NAMES = ['Rara','Aditya','Laras','Bima','Sekar','Aryo','Nara','Rama','Dewi','Galih','Sari','Yudha','Mira','Bagas','Kirana','Danu','Lestari','Reza','Kaelith','Sorvyn','Vael','Nyx','Oryn','Zhen','Asha','Ren','Sol','Lyra','Tavin','Mael'];
+  const RACES = ['Manusia','Elf','Dwarf','Orc','Android','Vampir','Peri','Iblis','Setengah Dewa','Manusia Serigala','Demi-human','Naga (Humanoid)','Penyihir Murni','Chimera'];
+  const rand  = arr => arr[Math.floor(Math.random() * arr.length)];
+  const pickS = id => {
+    const opts = [...document.getElementById(id).options].filter(o => o.value);
+    document.getElementById(id).value = opts[Math.floor(Math.random() * opts.length)].value;
+  };
+
+  document.getElementById('b-name').value  = rand(NAMES);
+  document.getElementById('b-race').value  = rand(RACES);
+  pickS('b-gender'); pickS('b-peran');
+  pickS('b-mbti'); pickS('b-zodiac'); pickS('b-blood');
+  updateBuildCount();
+}
+
+function updateBuildCount() {
+  const n = ['b-mbti','b-zodiac','b-blood'].filter(id => document.getElementById(id).value).length;
+  document.getElementById('build-count').innerHTML = `<span>${n}</span> sistem kepribadian dipilih`;
+}
+
+async function buildChar() {
+  const name     = document.getElementById('b-name').value.trim();
+  const race     = document.getElementById('b-race').value.trim();
+  const gender   = document.getElementById('b-gender').value;
+  const umur     = document.getElementById('b-umur').value.trim();
+  const peran    = document.getElementById('b-peran').value;
+  const motivasi = document.getElementById('b-motivasi').value.trim();
+  const mbti     = document.getElementById('b-mbti').value;
+  const zodiac   = document.getElementById('b-zodiac').value;
+  const blood    = document.getElementById('b-blood').value;
+  const ctx      = document.getElementById('b-ctx').value.trim();
+
+  if (!mbti && !zodiac && !blood && !ctx && !name && !motivasi) {
+    alert('Isi minimal satu field — nama, kepribadian, motivasi, atau backstory karakter.'); return;
+  }
+
+  setLoad('build', true);
+
+  const systems = [mbti && `MBTI: ${mbti}`, zodiac && `Zodiak: ${zodiac}`, blood && blood].filter(Boolean).join(' · ');
+
+  const prompt = `Kamu adalah character psychology synthesizer untuk fiction writers. Buat profile karakter fiksi yang kaya dan terasa hidup.
+
+Data karakter:
+- Nama: ${name || 'Belum ditentukan'}
+- Ras/Spesies: ${race || 'Manusia'}
+- Gender: ${gender || 'Tidak ditentukan'}
+- Umur: ${umur || 'Tidak ditentukan'}
+- Peran: ${peran || 'Tidak ditentukan'}
+- Motivasi utama: ${motivasi || 'Tidak ditentukan'}
+${mbti   ? `- MBTI: ${mbti}` : ''}
+${zodiac ? `- Zodiak: ${zodiac}` : ''}
+${blood  ? `- ${blood}` : ''}
+${ctx    ? `- Backstory: ${ctx}` : ''}
+
+Buat SEMUA seksi berikut dengan kedalaman novelis — bukan textbook:
+
+## Profil Karakter
+2–3 paragraf tentang siapa karakter ini di inti terdalamnya. Cari TENSIONS dan CONTRADICTIONS dari kombinasi ini.
+
+## Kekuatan
+Yang mereka kuasai. Bagaimana presence mereka dalam narasi. Spesifik, bukan generik.
+
+## Luka & Blind Spot
+Core wound. Apa yang tidak bisa mereka lihat tentang diri sendiri. Di mana mereka self-sabotage.
+
+## Cara Bicara & Gaya Komunikasi
+Pola kalimat, pilihan kata, cara handle konflik verbal. Sertakan 1–2 contoh kalimat khas.
+
+## Habit & Quirks
+4–5 kebiasaan atau gestur kecil yang bisa langsung dipakai penulis — signature behavior yang membuat karakter ini terasa nyata di halaman.
+
+## Arc Potential
+3 kemungkinan character arc: growth arc, tragic arc, satu yang grey/ambigu. Masing-masing 2–3 kalimat.
+
+## Karakter yang Bisa Dikaitkan
+Sarankan 3 tipe karakter yang menarik untuk berinteraksi dengan ${name || 'karakter ini'}. Jelaskan dinamikanya — bukan sekadar "teman/musuh", tapi tekstur dan ketegangan yang muncul.
+
+## Voice Bible
+Panduan suara karakter ini yang bisa langsung dipakai penulis saat nulis dialog:
+- **Pola Kalimat:** (panjang/pendek, formal/informal, langsung/berputar-putar)
+- **Pilihan Kata:** (kata/frasa yang sering muncul, diksi khas)
+- **Yang Dihindari:** (kata, topik, atau cara bicara yang tidak akan pernah keluar dari mulut karakter ini)
+- **Ekspresi Emosi:** (bagaimana mereka menunjukkan — atau menyembunyikan — emosi saat bicara)
+- **Saat Diam:** (diam mereka artinya apa)
+- **Contoh Kalimat Khas:** 3–4 baris dialog yang paling mencerminkan suara mereka
+
+## Contoh Dialog
+Tulis respons LANGSUNG IN-CHARACTER untuk 5 situasi — bukan analisis, bukan penjelasan. Langsung suaranya. Boleh pakai *action* dalam tanda bintang.
+
+**Menerima kabar buruk tiba-tiba:**
+
+**Saat marah pada seseorang:**
+
+**Harus meminta maaf:**
+
+**Gugup sebelum sesuatu penting:**
+
+**Bertemu orang yang tidak disukainya:**
+
+Gunakan bahasa Indonesia. Suara karakter harus konsisten sepanjang seksi.`;
+
+  try {
+    const result = await callAI([{ role: 'user', content: prompt }]);
+    renderBuildOutput(name, systems, result);
+    builtCharacter = { name: name || 'Unnamed', race, gender, umur, peran, motivasi, mbti, zodiac, blood, backstory: ctx, profileSummary: result };
+    document.getElementById('btn-from-build').style.display = '';
+  } catch (e) {
+    showBuildError(e.message);
+  }
+  setLoad('build', false);
+}
+
+function renderBuildOutput(name, systems, markdown) {
+  document.getElementById('build-out-title').textContent = name ? `${name} — Character Profile` : 'Character Profile';
+  document.getElementById('build-badges').innerHTML = systems.split(' · ').filter(Boolean).map(s => `<span class="badge">${s}</span>`).join('');
+  renderSections(markdown);
+  const wrap = document.getElementById('build-output');
+  wrap.classList.add('visible'); wrap.style.display = 'block';
+  setTimeout(() => wrap.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+}
+
+function parseSections(markdown) {
+  const lines = markdown.split('\n');
+  const sections = [];
+  let current = null;
+  for (const line of lines) {
+    if (/^#{1,3} /.test(line)) {
+      if (current) sections.push(current);
+      current = { title: line.replace(/^#{1,3} /, '').trim(), lines: [] };
+    } else if (current) {
+      current.lines.push(line);
+    }
+  }
+  if (current) sections.push(current);
+  return sections;
+}
+
+function renderSections(markdown) {
+  const sections = parseSections(markdown);
+  const container = document.getElementById('build-sections');
+  container.innerHTML = '';
+  sections.forEach((sec, i) => {
+    const div = document.createElement('div');
+    div.className = 'section-block';
+    div.id = `sec-${i}`;
+    const safeTitle = sec.title.replace(/'/g, "\\'");
+    div.innerHTML = `<div class="section-head"><div class="section-title">${sec.title}</div><button class="btn-regen" onclick="regenSection(${i},'${safeTitle}')" title="Regenerate seksi ini">↺</button></div><div class="section-content" id="sec-content-${i}">${md2htmlBody(sec.lines.join('\n'))}</div>`;
+    container.appendChild(div);
+  });
+}
+
+async function regenSection(index, title) {
+  if (!builtCharacter) return;
+  const btn = document.querySelector(`#sec-${index} .btn-regen`);
+  const content = document.getElementById(`sec-content-${index}`);
+  btn.disabled = true; btn.textContent = '…';
+  content.style.opacity = '0.4';
+
+  const c = builtCharacter;
+  const systems = [c.mbti && `MBTI: ${c.mbti}`, c.zodiac && `Zodiak: ${c.zodiac}`, c.blood && c.blood].filter(Boolean).join(', ');
+
+  const prompt = `Kamu adalah character synthesizer. Regenerate HANYA seksi "${title}" untuk karakter ini dengan versi yang segar dan berbeda.
+
+Nama: ${c.name} | Gender: ${c.gender || '-'} | Umur: ${c.umur || '-'} | Peran: ${c.peran || '-'}
+${systems} | Backstory: ${c.backstory || '-'} | Motivasi: ${c.motivasi || '-'}
+
+Output HANYA konten seksinya — tanpa heading, tanpa penjelasan lain. Tulis dengan kedalaman yang sama tapi perspektif atau sudut yang berbeda dari sebelumnya.`;
+
+  try {
+    const result = await callAI([{ role: 'user', content: prompt }]);
+    content.innerHTML = md2htmlBody(result);
+    content.style.opacity = '1';
+  } catch (e) {
+    content.innerHTML = `<p style="color:var(--orange)">⚠ ${e.message}</p>`;
+    content.style.opacity = '1';
+  }
+  btn.disabled = false; btn.textContent = '↺';
+}
+
+function showBuildError(msg) {
+  document.getElementById('build-sections').innerHTML = `<div style="padding:22px"><p style="color:var(--orange)">⚠ Error: ${msg}</p></div>`;
+  document.getElementById('build-output').classList.add('visible');
+  document.getElementById('build-output').style.display = 'block';
+}
+
+function clearBuild() {
+  ['b-name','b-race','b-umur','b-motivasi'].forEach(id => document.getElementById(id).value = '');
+  ['b-gender','b-peran','b-mbti','b-zodiac','b-blood'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('b-ctx').value = '';
+  document.getElementById('build-output').style.display = 'none';
+  document.getElementById('build-output').classList.remove('visible');
+  updateBuildCount();
+  builtCharacter = null;
+  document.getElementById('btn-from-build').style.display = 'none';
+}
+
+function copyBuildOut(btn) {
+  const texts = [...document.querySelectorAll('#build-sections .section-block')].map(sec => {
+    const title = sec.querySelector('.section-title').textContent;
+    const body  = sec.querySelector('.section-content').innerText;
+    return `## ${title}\n${body}`;
+  }).join('\n\n');
+  navigator.clipboard.writeText(texts).then(() => { btn.textContent = '✓ Copied'; setTimeout(() => btn.textContent = 'Copy All', 2000); });
+}
+
+function exportTxt() {
+  const title  = document.getElementById('build-out-title').textContent;
+  const badges = [...document.querySelectorAll('#build-badges .badge')].map(b => b.textContent).join(' · ');
+  const body   = [...document.querySelectorAll('#build-sections .section-block')].map(sec => {
+    const t = sec.querySelector('.section-title').textContent;
+    const b = sec.querySelector('.section-content').innerText;
+    return `## ${t}\n${b}`;
+  }).join('\n\n');
+  const date   = new Date().toLocaleDateString('id-ID', { day:'2-digit', month:'long', year:'numeric' });
+  const content = ['═══════════════════════════════════════', `  CHARAVORA — ${title.toUpperCase()}`, '═══════════════════════════════════════', badges ? `\nSistem: ${badges}` : '', `Generated: ${date}`, '\n───────────────────────────────────────\n', body, '\n───────────────────────────────────────', 'CharaVora · VoraLab (voralab.id)'].filter(Boolean).join('\n');
+  const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  Object.assign(document.createElement('a'), { href: url, download: `charavora-${slug}.txt` }).click();
+  URL.revokeObjectURL(url);
+}
+
+/* ══ REVERSE LOOKUP ══ */
+async function reverseMatch() {
+  const desc = document.getElementById('txt-rev').value.trim();
+  if (!desc) { alert('Tulis deskripsi karakter dulu.'); return; }
+  setLoad('rev', true);
+  const prompt = `Kamu adalah character personality classifier untuk fiction writers.\n\nDeskripsi karakter:\n"${desc}"\n\nBerikan match terbaik + confidence (🟢 High / 🟡 Medium / 🔴 Low) + reasoning singkat:\n\n## System Matches\n- **MBTI**: \n- **Zodiak Barat**: \n- **Golongan Darah**: \n\n## Mengapa Kombinasi Ini Koheren\nSatu paragraf — connecting thread.\n\n## Di Mana Sistemnya Kurang Pas\nTrait yang tidak fit sempurna ke sistem mana pun.\n\n## Rekomendasi Utama\nKalau hanya boleh satu sistem untuk karakter ini, pakai yang mana? Kenapa?\n\nGunakan bahasa Indonesia.`;
+  try {
+    const result = await callAI([{ role: 'user', content: prompt }]);
+    document.getElementById('rev-out-body').innerHTML = md2html(result);
+    const wrap = document.getElementById('rev-output');
+    wrap.classList.add('visible'); wrap.style.display = 'block';
+    setTimeout(() => wrap.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+  } catch (e) {
+    document.getElementById('rev-out-body').innerHTML = `<p style="color:var(--orange)">⚠ Error: ${e.message}</p>`;
+    document.getElementById('rev-output').classList.add('visible'); document.getElementById('rev-output').style.display = 'block';
+  }
+  setLoad('rev', false);
+}
+
+/* ══ CHARACTER ROOM ══ */
+function setPOV(n) {
+  currentPOV = n;
+  document.querySelectorAll('.pov-btn').forEach((b,i) => b.classList.toggle('active', (i===0&&n===1)||(i===1&&n===3)));
+}
+
+function carryToRoom() {
+  switchTab('room');
+  document.getElementById('btn-from-build').style.display = builtCharacter ? '' : 'none';
+}
+
+function useBuiltChar() {
+  if (!builtCharacter) return;
+  startRoom(builtCharacter);
+}
+
+function showManualForm() {
+  document.getElementById('manual-form').classList.toggle('open');
+}
+
+function startRoomManual() {
+  const name        = document.getElementById('m-name').value.trim();
+  const gender      = document.getElementById('m-gender').value;
+  const personality = document.getElementById('m-personality').value.trim();
+  const backstory   = document.getElementById('m-backstory').value.trim();
+  if (!name && !personality) { alert('Isi nama atau kepribadian karakter dulu.'); return; }
+  startRoom({ name: name || 'Unnamed', race: '', gender, umur: '', peran: '', motivasi: '', mbti: '', zodiac: '', blood: '', backstory, profileSummary: '', manualPersonality: personality });
+}
+
+function startRoom(char) {
+  roomCharacter = char;
+  chatHistory   = [];
+  const badge = [char.mbti, char.zodiac, char.blood, char.manualPersonality].filter(Boolean).join(' · ') || 'Custom';
+  document.getElementById('chat-char-name').textContent = char.name || 'Unnamed';
+  document.getElementById('chat-char-badge').textContent = badge;
+  document.getElementById('chat-messages').innerHTML = '';
+  document.getElementById('manual-form').classList.remove('open');
+  document.getElementById('chat-wrap').classList.add('open');
+  const povText = currentPOV === 1 ? 'POV Orang Pertama' : 'POV Orang Ketiga';
+  appendSystemMsg(`Karakter siap · ${povText}. Ketik skenario, pertanyaan, atau situasi.`);
+}
+
+function getRoomSystemPrompt() {
+  const c = roomCharacter;
+  const systems = [c.mbti && `MBTI: ${c.mbti}`, c.zodiac && `Zodiak: ${c.zodiac}`, c.blood && c.blood, c.manualPersonality && `Kepribadian: ${c.manualPersonality}`].filter(Boolean).join(', ');
+  const profile  = c.profileSummary ? `\nProfil (ringkasan):\n${c.profileSummary.substring(0, 1000)}` : '';
+  const povInstruction = currentPOV === 1
+    ? `Gunakan POV orang pertama — "aku/saya". Dialog dan ekspresi langsung dari ${c.name}.`
+    : `Gunakan POV orang ketiga — narasi tentang ${c.name}. Gunakan "dia/ia", describe aksi, ekspresi, dan pikirannya.`;
+
+  return `Kamu adalah ${c.name}, karakter fiksi dalam sebuah cerita.
+
+PROFIL:
+Nama: ${c.name} | Ras: ${c.race || 'Manusia'} | Gender: ${c.gender || '-'} | Umur: ${c.umur || '-'} | Peran: ${c.peran || '-'}
+${systems}
+Backstory: ${c.backstory || 'Tidak ada info tambahan'}
+Motivasi: ${c.motivasi || '-'}${profile}
+
+${povInstruction}
+
+ATURAN MUTLAK:
+1. Selalu jawab SEBAGAI ${c.name} — tidak pernah keluar dari karakter
+2. Gunakan cara bicara yang sesuai kepribadiannya — naturalkan
+3. Boleh pakai *action* dalam tanda bintang untuk gestur/ekspresi
+4. JANGAN menjelaskan kepribadianmu ("Sebagai INTJ...")
+5. JANGAN bilang kamu AI
+6. Kalau karakter diam — boleh jawab singkat atau dengan action saja`;
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input').value.trim();
+  if (!input || !roomCharacter) return;
+  document.getElementById('chat-input').value = '';
+  appendMsg('user', input);
+  chatHistory.push({ role: 'user', content: input });
+  document.getElementById('chat-send').disabled = true;
+  const typingId = appendTyping();
+  try {
+    const result = await callAI(chatHistory, getRoomSystemPrompt());
+    removeTyping(typingId);
+    appendMsg('ai', result);
+    chatHistory.push({ role: 'assistant', content: result });
+  } catch (e) {
+    removeTyping(typingId);
+    appendMsg('ai', `*[Error: ${e.message}]*`);
+  }
+  document.getElementById('chat-send').disabled = false;
+}
+
+function handleChatKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+}
+
+function appendMsg(role, text) {
+  const wrap = document.getElementById('chat-messages');
+  const div  = document.createElement('div');
+  div.className = `chat-msg ${role}`;
+  div.innerHTML = `<div class="chat-bubble">${md2htmlInline(text)}</div>`;
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function appendSystemMsg(text) {
+  const wrap = document.getElementById('chat-messages');
+  const div  = document.createElement('div');
+  div.style.cssText = 'text-align:center;font-family:var(--mono);font-size:10px;color:var(--muted);padding:8px 0';
+  div.textContent = text;
+  wrap.appendChild(div);
+}
+
+function appendTyping() {
+  const wrap = document.getElementById('chat-messages');
+  const div  = document.createElement('div');
+  const id   = 'typing-' + Date.now();
+  div.id = id; div.className = 'chat-msg ai';
+  div.innerHTML = '<div class="typing-bubble"><span></span><span></span><span></span></div>';
+  wrap.appendChild(div);
+  wrap.scrollTop = wrap.scrollHeight;
+  return id;
+}
+
+function removeTyping(id) { document.getElementById(id)?.remove(); }
+
+function clearChat() {
+  chatHistory = [];
+  document.getElementById('chat-messages').innerHTML = '';
+  const povText = currentPOV === 1 ? 'POV Orang Pertama' : 'POV Orang Ketiga';
+  appendSystemMsg(`Chat di-reset · ${povText}. Mulai percakapan baru.`);
+}
+
+/* ══ ANALYZE TEXT ══ */
+const MAX_WORDS = 5000;
+
+function updateWordCount() {
+  const text  = document.getElementById('analyze-text').value;
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+  const el    = document.getElementById('word-counter');
+  const btn   = document.getElementById('btn-analyze');
+
+  if (words === 0) { el.textContent = ''; el.className = 'word-counter'; }
+  else if (words <= 2000) { el.textContent = `${words.toLocaleString('id')} kata`; el.className = 'word-counter ok'; }
+  else if (words <= MAX_WORDS) { el.textContent = `${words.toLocaleString('id')} kata — proses mungkin lebih lambat`; el.className = 'word-counter warn'; }
+  else { el.textContent = `${words.toLocaleString('id')} kata — melebihi batas ${MAX_WORDS.toLocaleString('id')} kata. Potong teksnya dulu.`; el.className = 'word-counter over'; }
+
+  btn.disabled = words > MAX_WORDS;
+}
+
+async function analyzeText() {
+  const charName = document.getElementById('analyze-char').value.trim();
+  const text     = document.getElementById('analyze-text').value.trim();
+  if (!charName) { alert('Masukkan nama karakter yang ingin dianalisis.'); return; }
+  if (!text)     { alert('Paste teks ceritanya dulu.'); return; }
+  setLoad('analyze', true);
+
+  const prompt = `Kamu adalah character analyst untuk fiction writers. Analisis kepribadian "${charName}" dari teks cerita berikut.
+
+TEKS:
+"""
+${text}
+"""
+
+Analisis berdasarkan BUKTI DARI TEKS — kutip atau parafrase momen spesifik. Jangan mengarang.
+
+## System Matches (dari teks)
+- **MBTI**: [tipe] — [evidence dari teks, 1–2 kalimat. Kalau teks kurang cukup: 🔴 Low confidence + alasannya]
+- **Zodiak**: [tipe] — [evidence. Kalau tidak cukup: 🔴 Low + alasan]
+- **Golongan Darah**: [tipe] — [evidence. Kalau tidak cukup: 🔴 Low + alasan]
+
+## Portrait Psikologis
+2–3 paragraf tentang kepribadian ${charName} berdasarkan teks ini.
+
+## Momen Kunci
+3–5 momen atau kutipan dari teks yang paling revealing tentang kepribadian ${charName}.
+
+## Yang Belum Terjawab
+Aspek kepribadian yang masih ambigu atau tidak cukup terbukti dari teks ini. Jujur tentang keterbatasan — lebih baik bilang "tidak cukup data" daripada menebak.
+
+Gunakan bahasa Indonesia.`;
+
+  try {
+    const result = await callAI([{ role: 'user', content: prompt }]);
+    document.getElementById('analyze-out-title').textContent = `Analisis: ${charName}`;
+    document.getElementById('analyze-out-body').innerHTML = md2html(result);
+    const wrap = document.getElementById('analyze-output');
+    wrap.classList.add('visible'); wrap.style.display = 'block';
+    setTimeout(() => wrap.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+  } catch (e) {
+    document.getElementById('analyze-out-body').innerHTML = `<p style="color:var(--orange)">⚠ Error: ${e.message}</p>`;
+    document.getElementById('analyze-output').classList.add('visible'); document.getElementById('analyze-output').style.display = 'block';
+  }
+  setLoad('analyze', false);
+}
+
+/* ── UTILS ── */
+function md2html(text) {
+  const lines = text.split('\n'), out = [];
+  let inUl = false;
+  for (let raw of lines) {
+    let line = raw.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*([^*\n]+?)\*/g,'<em>$1</em>').replace(/`(.+?)`/g,'<code>$1</code>');
+    if (/^#{1,3} /.test(raw)) { if (inUl) { out.push('</ul>'); inUl=false; } out.push(`<h2>${raw.replace(/^#{1,3} /,'')}</h2>`); }
+    else if (/^[-•] /.test(raw)) { if (!inUl) { out.push('<ul>'); inUl=true; } out.push(`<li>${line.replace(/^[-•] /,'')}</li>`); }
+    else if (raw.trim()==='') { if (inUl) { out.push('</ul>'); inUl=false; } }
+    else { if (inUl) { out.push('</ul>'); inUl=false; } out.push(`<p>${line}</p>`); }
+  }
+  if (inUl) out.push('</ul>');
+  return out.join('');
+}
+
+function md2htmlBody(text) {
+  const lines = text.split('\n'), out = [];
+  let inUl = false;
+  for (let raw of lines) {
+    let line = raw.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*([^*\n]+?)\*/g,'<em>$1</em>').replace(/`(.+?)`/g,'<code>$1</code>');
+    if (/^[-•] /.test(raw)) { if (!inUl) { out.push('<ul>'); inUl=true; } out.push(`<li>${line.replace(/^[-•] /,'')}</li>`); }
+    else if (raw.trim()==='') { if (inUl) { out.push('</ul>'); inUl=false; } }
+    else { if (inUl) { out.push('</ul>'); inUl=false; } if (raw.trim()) out.push(`<p>${line}</p>`); }
+  }
+  if (inUl) out.push('</ul>');
+  return out.join('');
+}
+
+function md2htmlInline(text) {
+  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*([^*\n]+?)\*/g,'<em>$1</em>')
+    .replace(/\n/g,'<br>');
+}
+
+function setLoad(mode, on) {
+  const btn = document.getElementById(`btn-${mode}`);
+  const lbl = document.getElementById(`btn-${mode}-lbl`);
+  const dot = document.getElementById(`dots-${mode}`);
+  btn.disabled = on; lbl.style.display = on?'none':''; dot.style.display = on?'flex':'none';
+}
+
+function copyOut(bodyId, btn) {
+  navigator.clipboard.writeText(document.getElementById(bodyId).innerText).then(() => {
+    btn.textContent = '✓ Copied'; setTimeout(() => btn.textContent = 'Copy', 2000);
+  });
+}
+</script>
+</body>
+</html>
