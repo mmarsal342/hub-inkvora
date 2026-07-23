@@ -16,12 +16,14 @@ interface SidebarProps {
   onSelectProject: (project: Project) => void
   theme: string
   onToggleTheme: () => void
+  viewMode: 'editor' | 'corkboard'
+  onToggleView: () => void
 }
 
 export default function Sidebar({
   project, units, activeUnitId, onSelectUnit,
   onAddUnit, onAddChildUnit, onReorder, onDeleteUnit, onRenameUnit,
-  onSelectProject, theme, onToggleTheme
+  onSelectProject, theme, onToggleTheme, viewMode, onToggleView
 }: SidebarProps) {
   const [showProjectManager, setShowProjectManager] = useState(false)
   const [renamingId, setRenamingId] = useState<string | null>(null)
@@ -192,6 +194,9 @@ export default function Sidebar({
         <div class="p-4 border-t border-[var(--border)] space-y-2">
           <button onClick={onAddUnit} class="ih-btn ih-btn-primary w-full text-xs py-2">
             + New Scene
+          </button>
+          <button onClick={onToggleView} class="ih-theme-btn w-full justify-center text-xs">
+            {viewMode === 'editor' ? 'Corkboard' : 'Editor'}
           </button>
           <button onClick={onToggleTheme} class="ih-theme-btn w-full justify-center text-xs">
             {theme === 'dark' ? 'Light' : 'Dark'} Mode

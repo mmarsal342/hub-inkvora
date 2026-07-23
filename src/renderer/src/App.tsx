@@ -6,6 +6,7 @@ import './styles/index.css'
 import Sidebar from './components/Sidebar'
 import EditorPane from './components/EditorPane'
 import InspectorPane from './components/InspectorPane'
+import CorkboardView from './components/CorkboardView'
 import { useTheme } from './hooks/useTheme'
 
 export default function App() {
@@ -15,6 +16,7 @@ export default function App() {
   const [entities, setEntities] = useState<Entity[]>([])
   
   const [activeUnitId, setActiveUnitId] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<'editor' | 'corkboard'>('editor')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -112,14 +114,32 @@ export default function App() {
           theme={theme}
           onToggleTheme={toggleTheme}
           onSelectProject={loadProjectData}
+          viewMode={viewMode}
+          onToggleView={() => setViewMode(viewMode === 'editor' ? 'corkboard' : 'editor')}
         />
-        <EditorPane 
-          unit={units.find(u => u.id === activeUnitId) || null} 
-          onUpdateUnit={async (id, data) => {
-            const updated = await window.hub.updateUnit(id, data)
-            setUnits(units.map(u => u.id === id ? updated : u))
-          }}
-        />
+        {viewMode === 'corkboard' ? (
+          <CorkboardView
+            units={units}
+            activeUnitId={activeUnitId}
+            onSelectUnit={(id) => {
+              setActiveUnitId(id)
+              setViewMode('editor')
+            }}
+            onReorder={async (id, newOrderKey, newParentId) => {
+              await window.hub.reorderUnit(id, newOrderKey, newParentId)
+              await refreshUnits()
+            }}
+            onBackToEditor={() => setViewMode('editor')}
+          />
+        ) : (
+          <EditorPane 
+            unit={units.find(u => u.id === activeUnitId) || null} 
+            onUpdateUnit={async (id, data) => {
+              const updated = await window.hub.updateUnit(id, data)
+              setUnits(units.map(u => u.id === id ? updated : u))
+            }}
+          />
+        )}
         <InspectorPane 
           project={activeProject} 
           entities={entities} 
