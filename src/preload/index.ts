@@ -11,6 +11,7 @@ const hub = {
   // Unit (manuscript structure)
   listUnits: (projectId: string) => ipcRenderer.invoke('unit:list', projectId),
   getUnit: (id: string) => ipcRenderer.invoke('unit:get', id),
+  getAppearances: (projectId: string, entityId: string) => ipcRenderer.invoke('unit:appearances', projectId, entityId),
   createUnit: (data: { project_id: string; parent_unit_id?: string; title?: string; order_key?: string }) =>
     ipcRenderer.invoke('unit:create', data),
   updateUnit: (id: string, data: any) => ipcRenderer.invoke('unit:update', id, data),
@@ -27,7 +28,10 @@ const hub = {
 
   // Relation
   listRelations: (projectId: string) => ipcRenderer.invoke('relation:list', projectId),
-  createRelation: (data: any) => ipcRenderer.invoke('relation:create', data)
+  relationsByEntity: (entityId: string) => ipcRenderer.invoke('relation:byEntity', entityId),
+  createRelation: (data: any) => ipcRenderer.invoke('relation:create', data),
+  updateRelation: (id: string, data: any) => ipcRenderer.invoke('relation:update', id, data),
+  deleteRelation: (id: string) => ipcRenderer.invoke('relation:delete', id)
 }
 
 contextBridge.exposeInMainWorld('hub', hub)

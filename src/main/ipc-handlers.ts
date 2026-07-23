@@ -130,6 +130,42 @@ export function registerIpcHandlers() {
     return getDb().prepare('SELECT * FROM relation WHERE project_id = ?').all(projectId)
   })
 
+  ipcMain.handle('relation:byEntity', (_e, entityId: string) => {
+    return getDb().prepare(
+      `SELECT r.*, 
+        ef.name AS from_name, ef.entity_type AS from_type,
+        et.name AS to_name, et.entity_type AS to_type
+       FROM relation r
+       JOIN entities ef ON r.from_entity_id = ef.id
+       JOIN entities et ON r.to_entity_id = et.id
+       WHERE (r.from_entity_id = ? OR r.to_entity_id = ?)`
+    ).all(entityId, entityId)
+  })
+
+  ipcMain.handle('relation:delete', (_e, id: string) => {
+    getDb().prepare('DELETE FROM relation WHERE id = ?').run(id)
+    return true
+  })
+
+  ipcMain.handle('relation:update', (_e, id: string, data: Partial<{ relation_type: string; valence: number; intensity: number; current_type: string; history: any }>) => {
+    const fields: string[] = []
+    const vals: any[] = []
+    for (const [k, v] of Object.entries(data)) {
+      fields.push(`${k} = ?`)
+      vals.push(k === 'history' ? JSON.stringify(v) : v)
+    }
+    vals.push(id)
+    getDb().prepare(`UPDATE relation SET ${fields.join(', ')} WHERE id = ?`).run(...vals)
+    return getDb().prepare('SELECT * FROM relation WHERE id = ?').get(id)
+  })
+
+  // ── Appearances: units that mention an entity id ───────
+  ipcMain.handle('unit:appearances', (_e, projectId: string, entityId: string) => {
+    return getDb().prepare(
+      `SELECT id, title FROM unit WHERE project_id = ? AND content LIKE ?`
+    ).all(projectId, `%"id":"${entityId}"%`)
+  })
+
   ipcMain.handle('relation:create', (_e, data: {
     project_id: string; from_entity_id: string; to_entity_id: string;
     relation_type: string; direction: string; valence: number; intensity: number

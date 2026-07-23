@@ -95,6 +95,12 @@ export default function App() {
             const e = await window.hub.createEntity({ project_id: activeProject.id, entity_type: type, name })
             setEntities([...entities, e])
           }}
+          onUpdateEntity={(id, updated) => {
+            setEntities(entities.map(e => e.id === id ? updated : e))
+          }}
+          onDeleteEntity={(id) => {
+            setEntities(entities.filter(e => e.id !== id))
+          }}
         />
       </div>
     </>
