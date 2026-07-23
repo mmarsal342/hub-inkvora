@@ -1,0 +1,2383 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  ImagesVora — Batch Image Generator
+  © 2026 VoraLab (www.voralab.id). All rights reserved.
+
+  Built by the grace of God.
+  ============================================================================
+-->
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImagesVora — Batch Image Generator</title>
+    <meta name="description" content="ImagesVora — AI image generator dengan 14 kategori, dynamic fields, brand colors. A VoraLab tool.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --surface: #111111;
+            --surface2: #161616;
+            --border: #1f1f1f;
+            --border2: #2a2a2a;
+            --text: #f0ede8;
+            --muted: #5a5754;
+            --muted2: #807c77;
+            --accent: #e8ff47;
+            --accent2: #ff6b35;
+            --font-display: 'Syne', sans-serif;
+            --font-mono: 'DM Mono', monospace;
+        }
+        * { box-sizing: border-box; }
+        html, body { max-width: 100%; overflow-x: hidden; }
+        html { scroll-behavior: smooth; }
+        body {
+            background: var(--bg); color: var(--text);
+            font-family: var(--font-display);
+            min-height: 100vh; overflow-x: hidden; margin: 0;
+        }
+
+        /* Noise */
+        body::before {
+            content: ''; position: fixed; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none; z-index: 1000; opacity: 0.3;
+        }
+
+        /* Backgrounds */
+        .bg-grid {
+            position: fixed; inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 56px 56px;
+            mask-image: radial-gradient(ellipse 100% 60% at 50% 0%, black, transparent);
+            pointer-events: none; z-index: 0;
+        }
+        .bg-glow { position: fixed; width: 70vw; max-width: 600px; aspect-ratio: 1; background: radial-gradient(circle, rgba(232,255,71,0.06) 0%, transparent 70%); top: -15%; left: -15%; pointer-events: none; z-index: 0; }
+        .bg-glow2 { position: fixed; width: 60vw; max-width: 450px; aspect-ratio: 1; background: radial-gradient(circle, rgba(255,107,53,0.05) 0%, transparent 70%); bottom: 0; right: -15%; pointer-events: none; z-index: 0; }
+
+        /* Custom cursor (desktop only — toggled by JS / media query) */
+        .cursor, .cursor-ring { display: none; }
+        @media (hover: hover) and (pointer: fine) {
+            body.has-cursor { cursor: none; }
+            body.has-cursor .cursor {
+                display: block; position: fixed; width: 9px; height: 9px;
+                background: var(--accent); border-radius: 50%;
+                pointer-events: none; z-index: 9999;
+                transform: translate(-50%,-50%); mix-blend-mode: difference;
+                transition: width .2s, height .2s;
+            }
+            body.has-cursor .cursor-ring {
+                display: block; position: fixed; width: 34px; height: 34px;
+                border: 1px solid rgba(232,255,71,0.4); border-radius: 50%;
+                pointer-events: none; z-index: 9998;
+                transform: translate(-50%,-50%);
+                transition: transform .12s ease, width .3s, height .3s, border-color .2s;
+            }
+            body.has-cursor:has(a:hover) .cursor-ring,
+            body.has-cursor:has(button:hover) .cursor-ring,
+            body.has-cursor:has(input:hover) .cursor-ring,
+            body.has-cursor:has(select:hover) .cursor-ring,
+            body.has-cursor:has(textarea:hover) .cursor-ring {
+                width: 52px; height: 52px; border-color: var(--accent);
+            }
+        }
+
+        /* NAV */
+        nav {
+            position: sticky; top: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            background: rgba(10,10,10,0.88); backdrop-filter: blur(12px);
+        }
+        .nav-logo { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.02em; text-decoration: none; color: var(--text); }
+        .nav-logo span { color: var(--accent); }
+        .nav-link {
+            font-family: var(--font-mono); font-size: 0.68rem; color: var(--muted);
+            text-decoration: none; letter-spacing: 0.08em; text-transform: uppercase;
+            transition: color .2s; display: inline-flex; align-items: center; gap: 0.35rem;
+        }
+        .nav-link:hover { color: var(--accent); }
+
+        /* Language toggle */
+        .lang-toggle { display: inline-flex; border: 1px solid var(--border2); border-radius: 99px; overflow: hidden; }
+        .lang-opt {
+            background: none; border: none; cursor: pointer;
+            font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.08em;
+            color: var(--muted); padding: 0.3rem 0.7rem; transition: background .2s, color .2s;
+        }
+        .lang-opt.active { background: var(--accent); color: #0a0a0a; font-weight: 500; }
+
+        /* Wrap */
+        .wrap { max-width: 1200px; margin: 0 auto; padding: 0 1.25rem; position: relative; z-index: 2; }
+
+        /* HERO */
+        .hero { padding: 3.5rem 0 2.5rem; }
+        .eyebrow {
+            font-family: var(--font-mono); font-size: 0.68rem; color: var(--accent);
+            letter-spacing: 0.15em; text-transform: uppercase;
+            display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.25rem;
+        }
+        .eyebrow::before { content:''; display:block; width:26px; height:1px; background: var(--accent); }
+        .hero-title {
+            font-size: clamp(2.4rem, 9.5vw, 6rem); font-weight: 800;
+            line-height: 0.9; letter-spacing: -0.04em; margin: 0 0 1.5rem;
+        }
+        .hero-title .accent, .hero-title > span { white-space: nowrap; }
+        @media (min-width: 560px) {
+            .hero-title { font-size: clamp(3rem, 8vw, 6rem); }
+        }
+        .hero-title .accent { color: var(--accent); }
+        .hero-title .stroke { color: transparent; -webkit-text-stroke: 1px rgba(240,237,232,0.25); }
+        .hero-sub { font-family: var(--font-mono); font-size: 0.9rem; color: var(--muted2); max-width: 460px; line-height: 1.7; }
+
+        /* SECTION */
+        .section { padding: 2.5rem 0; border-top: 1px solid var(--border); }
+        .section-head { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1.75rem; }
+        .section-num { font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent); letter-spacing: 0.1em; padding-top: 0.4rem; }
+        .section-title { font-size: clamp(1.6rem, 5vw, 2.4rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1; margin: 0; }
+        .section-title .accent { color: var(--accent); }
+        .section-desc { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); margin-top: 0.4rem; }
+
+        /* Panel */
+        .glass-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 1.5rem; }
+        .panel-label { font-family: var(--font-mono); font-size: 0.68rem; color: var(--muted2); letter-spacing: 0.06em; }
+
+        label { color: var(--text); }
+        .field-label { display:block; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+
+        /* Inputs */
+        .ios-input {
+            background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+            font-family: var(--font-mono); border-radius: 3px;
+            transition: border-color .2s, background .2s;
+        }
+        .ios-input::placeholder { color: var(--muted); }
+        .ios-input:focus { outline: none; border-color: var(--accent); background: #1a1a18; }
+        select.ios-input option { background: var(--surface); color: var(--text); }
+
+        /* Buttons */
+        .ios-button { background: var(--accent); color: #0a0a0a; font-family: var(--font-display); font-weight: 700; border: none; border-radius: 3px; cursor: pointer; transition: transform .15s, box-shadow .2s, opacity .2s; }
+        .ios-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(232,255,71,0.22); }
+        .ios-button:active { transform: scale(0.98); }
+        .btn-orange { background: var(--accent2); color: #0a0a0a; font-weight: 700; border: none; border-radius: 3px; cursor: pointer; transition: transform .15s, box-shadow .2s; }
+        .btn-orange:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(255,107,53,0.22); }
+
+        /* ScaleVora CTA */
+        .scalevora-cta {
+            display: block; text-decoration: none;
+            background: linear-gradient(135deg, rgba(232,255,71,0.08), rgba(255,107,53,0.06));
+            border: 1px solid var(--border2); border-left: 3px solid var(--accent);
+            border-radius: 4px; padding: 0.9rem 1rem;
+            transition: border-color .2s, transform .15s, box-shadow .2s;
+        }
+        .scalevora-cta:hover { border-left-color: var(--accent2); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
+        .scalevora-cta-text { display: flex; flex-direction: column; gap: 0.25rem; }
+        .scalevora-cta-title { font-size: 0.82rem; font-weight: 700; color: var(--accent); letter-spacing: -0.01em; }
+        .scalevora-cta:hover .scalevora-cta-title { color: var(--accent2); }
+        .scalevora-cta-sub { font-family: var(--font-mono); font-size: 0.66rem; color: var(--muted2); line-height: 1.55; }
+
+
+        /* Loader */
+        .loader { border: 3px solid rgba(232,255,71,0.2); border-top: 3px solid var(--accent); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0%{transform:rotate(0)} 100%{transform:rotate(360deg)} }
+
+        /* Modal */
+        #previewModal { display: none; background: rgba(0,0,0,0.92); backdrop-filter: blur(10px); }
+        .zoom-img { transition: transform 0.3s ease; cursor: zoom-in; }
+
+        /* Footer */
+        footer { border-top: 1px solid var(--border); padding: 2.5rem 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; position: relative; z-index: 2; }
+        .footer-logo { font-size: 1rem; font-weight: 800; letter-spacing: -0.02em; }
+        .footer-logo span { color: var(--accent); }
+        .footer-meta { font-family: var(--font-mono); font-size: 0.68rem; color: var(--muted); letter-spacing: 0.05em; text-align: right; line-height: 1.9; }
+        .footer-grace { color: var(--accent2); }
+        .footer-license { color: var(--muted); font-size: 0.6rem; margin-top: 0.5rem; opacity: 0.8; }
+        .footer-meta a { color: var(--muted); text-decoration: none; }
+        .footer-meta a:hover { color: var(--text); }
+
+        /* Fade-up on scroll */
+        .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+        .reveal.in { opacity: 1; transform: none; }
+
+        /* Theme overrides for JS-injected Tailwind children */
+        #resultsGrid .glass-panel { background: var(--surface2); border-color: var(--border); }
+        .bg-white\/40, .bg-white\/25 { background: var(--surface2) !important; }
+        .border-white\/30, .border-white\/25 { border-color: var(--border) !important; }
+        .text-gray-700, .text-gray-800, .text-gray-600, .text-gray-500 { color: var(--text) !important; }
+        .text-gray-400 { color: var(--muted) !important; }
+        .hover\:bg-white\/60:hover { background: #1d1d1a !important; }
+
+        /* Fallback spacing if Tailwind CDN is slow */
+        .space-y-6 > * + * { margin-top: 1.5rem; }
+        .space-y-4 > * + * { margin-top: 1rem; }
+        .space-y-3 > * + * { margin-top: 0.75rem; }
+        .space-y-2 > * + * { margin-top: 0.5rem; }
+        .gap-4 { gap: 1rem; } .gap-6 { gap: 1.5rem; }
+
+        /* Desktop grid inside sections */
+        @media (min-width: 900px) {
+            .compose-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start; }
+            .gen-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: start; }
+        }
+
+        /* Expand button */
+        .expand-btn {
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            background: none; border: 1px solid var(--border2); color: var(--muted2);
+            font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.06em;
+            text-transform: uppercase; padding: 0.25rem 0.55rem; border-radius: 99px;
+            cursor: pointer; transition: border-color .2s, color .2s;
+        }
+        .expand-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* Engine toggle */
+        .engine-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+        .engine-opt {
+            display: flex; flex-direction: column; gap: 0.2rem; text-align: left;
+            background: var(--surface2); border: 1px solid var(--border); border-radius: 4px;
+            padding: 0.7rem 0.85rem; cursor: pointer; transition: border-color .2s, background .2s;
+        }
+        .engine-opt:hover { border-color: var(--muted); }
+        .engine-opt.active { border-color: var(--accent); background: rgba(232,255,71,0.06); }
+        .engine-name { font-size: 0.8rem; font-weight: 700; color: var(--text); }
+        .engine-opt.active .engine-name { color: var(--accent); }
+        .engine-desc { font-family: var(--font-mono); font-size: 0.6rem; color: var(--muted2); line-height: 1.4; }
+        #aspectWrap.disabled { opacity: 0.4; pointer-events: none; }
+
+        /* Tombol download per gambar di galeri */
+        .img-dl-btn {
+            position: absolute; top: 8px; right: 8px; z-index: 5;
+            width: 34px; height: 34px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(10,10,10,0.7); color: var(--accent);
+            border: 1px solid rgba(232,255,71,0.4); backdrop-filter: blur(4px);
+            text-decoration: none; transition: background .2s, transform .15s, opacity .2s;
+            opacity: 0; /* desktop: muncul saat hover kartu */
+        }
+        .group:hover .img-dl-btn { opacity: 1; }
+        .img-dl-btn:hover { background: var(--accent); color: #0a0a0a; transform: translateY(-1px); }
+        .img-dl-btn:active { transform: scale(0.92); }
+        /* Perangkat sentuh: tombol selalu tampil (tidak ada hover) */
+        @media (hover: none), (pointer: coarse) {
+            .img-dl-btn { opacity: 1; }
+        }
+
+        /* Bulk fullscreen editor */
+        #bulkEditor {
+            display: none; position: fixed; inset: 0; z-index: 2400;
+            background: var(--bg); flex-direction: column;
+        }
+        #bulkEditor.show { display: flex; }
+        .bulk-head {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1rem 1.5rem; border-bottom: 1px solid var(--border);
+        }
+        .bulk-title { font-size: 0.95rem; font-weight: 800; letter-spacing: -0.02em; }
+        .bulk-title span { color: var(--accent); }
+        .bulk-head-right { display: flex; align-items: center; gap: 1rem; }
+        .bulk-count { font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted2); }
+        .bulk-close {
+            background: var(--accent); color: #0a0a0a; border: none; border-radius: 3px;
+            font-family: var(--font-display); font-weight: 700; font-size: 0.78rem;
+            padding: 0.5rem 1.4rem; cursor: pointer; transition: transform .15s;
+        }
+        .bulk-close:hover { transform: translateY(-1px); }
+        #bulkTextarea {
+            flex: 1; width: 100%; background: var(--bg); border: none; outline: none;
+            color: var(--text); font-family: var(--font-mono); font-size: 0.9rem;
+            line-height: 1.7; padding: 1.5rem; resize: none;
+        }
+        #bulkTextarea::placeholder { color: var(--muted); }
+
+        /* Auto-generate countdown overlay */
+        #autoGenOverlay {
+            display: none; position: fixed; inset: 0; z-index: 2500;
+            background: rgba(10,10,10,0.9); backdrop-filter: blur(10px);
+            align-items: center; justify-content: center;
+        }
+        #autoGenOverlay.show { display: flex; }
+        .autogen-box { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+        .autogen-num {
+            font-size: 7rem; font-weight: 800; line-height: 1; color: var(--accent);
+            letter-spacing: -0.04em; animation: agpulse 1s ease-in-out infinite;
+        }
+        @keyframes agpulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(0.85);opacity:0.6} }
+        .autogen-label { font-family: var(--font-mono); font-size: 0.85rem; color: var(--text); letter-spacing: 0.04em; }
+        .autogen-cancel {
+            margin-top: 0.5rem; background: none; border: 1px solid var(--border2);
+            color: var(--muted2); font-family: var(--font-mono); font-size: 0.7rem;
+            letter-spacing: 0.08em; text-transform: uppercase; padding: 0.5rem 1.5rem;
+            border-radius: 99px; cursor: pointer; transition: border-color .2s, color .2s;
+        }
+        .autogen-cancel:hover { border-color: var(--accent2); color: var(--accent2); }
+
+        /* Disclaimer modal */
+        #disclaimerModal {
+            display: none; position: fixed; inset: 0; z-index: 2000;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            align-items: center; justify-content: center; padding: 1.25rem;
+        }
+        #disclaimerModal.open { display: flex; }
+        .disc-box {
+            background: var(--surface); border: 1px solid var(--border2);
+            border-radius: 5px; max-width: 640px; width: 100%;
+            max-height: 85vh; overflow-y: auto; padding: 2rem;
+            position: relative;
+        }
+        .disc-box h2 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 0.25rem; }
+        .disc-box h2 .accent { color: var(--accent); }
+        .disc-eyebrow { font-family: var(--font-mono); font-size: 0.65rem; color: var(--accent); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 1rem; }
+        .disc-box h3 { font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted2); letter-spacing: 0.08em; text-transform: uppercase; margin: 1.5rem 0 0.6rem; }
+        .disc-box ul { list-style: none; padding: 0; margin: 0; }
+        .disc-box li { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text); line-height: 1.65; padding-left: 1.1rem; position: relative; margin-bottom: 0.6rem; }
+        .disc-box li::before { content: '—'; position: absolute; left: 0; color: var(--accent); }
+        .disc-box .disc-en li { color: var(--muted2); font-size: 0.72rem; }
+        .disc-close { position: absolute; top: 1rem; right: 1.25rem; background: none; border: none; color: var(--text); font-size: 1.8rem; cursor: pointer; line-height: 1; }
+        .disc-divider { height: 1px; background: var(--border); margin: 1.75rem 0 0; }
+        .footer-info-btn {
+            background: none; border: 1px solid var(--border2); color: var(--muted);
+            font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.08em;
+            text-transform: uppercase; padding: 0.3rem 0.6rem; border-radius: 99px;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;
+            transition: border-color .2s, color .2s; margin-left: 0.75rem;
+        }
+        .footer-info-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+        /* ── SEGMENT TABS ── */
+        .seg-tabs { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:0.85rem; }
+        .seg-tab { background:none; border:1px solid var(--border2); color:var(--muted2);
+            font-family:var(--font-mono); font-size:0.65rem; letter-spacing:0.06em;
+            padding:0.3rem 0.8rem; border-radius:99px; cursor:pointer; transition:all .15s; white-space:nowrap; }
+        .seg-tab.active { background:var(--accent); color:#0a0a0a; border-color:var(--accent); font-weight:600; }
+        .seg-tab:hover:not(.active) { border-color:var(--muted2); color:var(--text); }
+        .cat-grid { display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-bottom:0.85rem; }
+        .cat-card { background:var(--surface2); border:1px solid var(--border); color:var(--muted2);
+            font-family:var(--font-mono); font-size:0.65rem; padding:0.45rem 0.6rem;
+            border-radius:3px; cursor:pointer; text-align:left; transition:all .15s; line-height:1.3; }
+        .cat-card:hover:not(.active) { border-color:var(--muted); color:var(--text); }
+        .cat-card.active { border-color:var(--accent); color:var(--accent); background:rgba(232,255,71,0.06); font-weight:600; }
+        .dyn-fields { display:flex; flex-direction:column; gap:0.65rem; margin-bottom:0.75rem; }
+        .chips-row { display:flex; flex-wrap:wrap; gap:4px; margin-top:0.3rem; }
+        .chip { background:var(--surface2); border:1px solid var(--border); color:var(--muted2);
+            font-family:var(--font-mono); font-size:0.62rem; padding:0.25rem 0.6rem;
+            border-radius:99px; cursor:pointer; transition:all .15s; white-space:nowrap; }
+        .chip:hover:not(.active) { border-color:var(--muted); color:var(--text); }
+        .chip.active { background:rgba(232,255,71,0.1); border-color:var(--accent); color:var(--accent); font-weight:600; }
+        .toggle-row { display:flex; gap:4px; margin-top:0.3rem; }
+        .toggle-opt { background:var(--surface2); border:1px solid var(--border); color:var(--muted2);
+            font-family:var(--font-mono); font-size:0.62rem; padding:0.3rem 0.75rem;
+            border-radius:3px; cursor:pointer; transition:all .15s; flex:1; }
+        .toggle-opt.active { background:rgba(232,255,71,0.1); border-color:var(--accent); color:var(--accent); font-weight:600; }
+        .batch-toggle { display:flex; gap:4px; }
+        .batch-btn { background:var(--surface2); border:1px solid var(--border); color:var(--muted2);
+            font-family:var(--font-mono); font-size:0.72rem; padding:0.4rem 0.7rem;
+            border-radius:3px; cursor:pointer; transition:all .15s; min-width:36px; text-align:center; }
+        .batch-btn:hover:not(.active) { border-color:var(--muted); color:var(--text); }
+        .batch-btn.active { background:rgba(232,255,71,0.1); border-color:var(--accent); color:var(--accent); font-weight:700; }
+        .brand-section { border-top:1px solid var(--border); padding-top:0.85rem; margin-top:0.25rem; }
+        .brand-toggle-row { display:flex; align-items:center; justify-content:space-between; cursor:pointer; }
+        .brand-toggle-label { font-size:0.8rem; font-weight:700; }
+        .brand-toggle-icon { font-family:var(--font-mono); font-size:0.65rem; color:var(--muted); }
+        .brand-body { display:none; margin-top:0.6rem; }
+        .brand-body.open { display:block; }
+        .brand-swatches { display:flex; gap:8px; margin-top:0.5rem; align-items:flex-end; flex-wrap:wrap; }
+        .brand-swatch-wrap { display:flex; flex-direction:column; align-items:center; gap:3px; }
+        .brand-swatch { width:36px; height:36px; border-radius:4px; border:2px solid var(--border2);
+            cursor:pointer; padding:0; overflow:hidden; position:relative; }
+        .brand-swatch input[type=color] { position:absolute; inset:0; opacity:0; cursor:pointer; width:130%; height:130%; border:none; padding:0; margin:-15%; }
+        .brand-swatch-hex { font-family:var(--font-mono); font-size:0.55rem; color:var(--muted); }
+        .brand-clear { background:none; border:1px solid var(--border2); color:var(--muted);
+            font-family:var(--font-mono); font-size:0.6rem; padding:0.2rem 0.5rem;
+            border-radius:3px; cursor:pointer; transition:all .15s; align-self:flex-end; }
+        .brand-clear:hover { color:var(--accent2); border-color:var(--accent2); }
+
+        /* ── INSIGHTS PANEL ── */
+        #insightsPanel { display:none; position:fixed; inset:0; z-index:2300;
+            background:rgba(0,0,0,0.92); backdrop-filter:blur(12px);
+            align-items:flex-start; justify-content:center; padding:1.5rem; overflow-y:auto; }
+        #insightsPanel.open { display:flex; }
+        .ins-box { background:var(--surface); border:1px solid var(--border2);
+            border-radius:5px; max-width:780px; width:100%; padding:0; overflow:hidden; }
+        .ins-header { background:var(--surface2); border-bottom:1px solid var(--border);
+            padding:1.25rem 1.5rem; display:flex; align-items:center; justify-content:space-between; }
+        .ins-title { font-size:1rem; font-weight:800; letter-spacing:-0.02em; }
+        .ins-title .accent { color:var(--accent); }
+        .ins-meta { font-family:var(--font-mono); font-size:0.62rem; color:var(--muted); margin-top:3px; }
+        .ins-close { background:none; border:none; color:var(--muted2); font-size:1.6rem;
+            cursor:pointer; line-height:1; padding:0; transition:color .15s; }
+        .ins-close:hover { color:var(--text); }
+        .ins-nav { display:flex; flex-wrap:wrap; gap:4px; padding:1rem 1.5rem 0; border-bottom:1px solid var(--border); }
+        .ins-nav-btn { background:none; border:none; color:var(--muted2); font-family:var(--font-mono);
+            font-size:0.62rem; padding:0.35rem 0.8rem 0.6rem; cursor:pointer;
+            border-bottom:2px solid transparent; transition:all .15s; }
+        .ins-nav-btn.active { color:var(--accent); border-bottom-color:var(--accent); }
+        .ins-nav-btn:hover:not(.active) { color:var(--text); }
+        .ins-content { padding:1.25rem 1.5rem 1.5rem; }
+        .ins-section { margin-bottom:1.1rem; }
+        .ins-section-label { font-family:var(--font-mono); font-size:0.65rem; font-weight:600;
+            letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.5rem;
+            display:flex; align-items:center; gap:0.4rem; }
+        .ins-tags { display:flex; flex-wrap:wrap; gap:5px; }
+        .ins-tag { font-family:var(--font-mono); font-size:0.65rem; padding:0.25rem 0.6rem;
+            border-radius:99px; border:1px solid; }
+        .ins-tag.red   { color:#ff6b6b; border-color:rgba(255,107,107,0.3); background:rgba(255,107,107,0.06); }
+        .ins-tag.yellow{ color:#ffd166; border-color:rgba(255,209,102,0.3); background:rgba(255,209,102,0.06); }
+        .ins-tag.green { color:var(--accent); border-color:rgba(232,255,71,0.3); background:rgba(232,255,71,0.06); }
+        .ins-tip { font-family:var(--font-mono); font-size:0.68rem; color:var(--muted2);
+            padding:0.6rem 0.8rem; background:var(--surface2); border-left:3px solid var(--accent);
+            border-radius:0 3px 3px 0; margin-top:0.75rem; line-height:1.6; }
+        .ins-tip-label { color:var(--accent); font-weight:600; margin-right:0.3rem; }
+        .ins-use-btn { margin-top:0.75rem; background:rgba(232,255,71,0.08); color:var(--accent);
+            border:1px solid rgba(232,255,71,0.25); font-family:var(--font-mono); font-size:0.68rem;
+            padding:0.45rem 1rem; border-radius:3px; cursor:pointer; transition:all .15s; }
+        .ins-use-btn:hover { background:rgba(232,255,71,0.15); }
+        .brand-upload-row { display:flex; align-items:center; gap:8px; margin-bottom:0.5rem; }
+        .brand-upload-btn { display:inline-flex; align-items:center; gap:6px;
+            background:var(--surface2); border:1px solid var(--border2); color:var(--muted2);
+            font-family:var(--font-mono); font-size:0.65rem; padding:0.4rem 0.8rem;
+            border-radius:3px; cursor:pointer; transition:all .15s; }
+        .brand-upload-btn:hover { border-color:var(--accent); color:var(--accent); }
+        .brand-hint { font-family:var(--font-mono); font-size:0.62rem; color:var(--muted); margin-top:0.4rem; line-height:1.5; }
+        .brand-active-badge { font-family:var(--font-mono); font-size:0.6rem; background:rgba(232,255,71,0.15);
+            color:var(--accent); border:1px solid rgba(232,255,71,0.3); padding:0.1rem 0.45rem;
+            border-radius:99px; margin-left:0.4rem; }
+        #confirmModal { display:none; position:fixed; inset:0; z-index:2200;
+            background:rgba(0,0,0,0.88); backdrop-filter:blur(10px);
+            align-items:center; justify-content:center; padding:1.25rem; }
+        #confirmModal.open { display:flex; }
+        .confirm-box { background:var(--surface); border:1px solid var(--border2);
+            border-radius:5px; max-width:400px; width:100%; padding:1.75rem; }
+        .confirm-title { font-size:1.15rem; font-weight:800; letter-spacing:-0.02em; margin-bottom:0.35rem; }
+        .confirm-title .accent { color:var(--accent); }
+        .confirm-detail { font-family:var(--font-mono); font-size:0.7rem; color:var(--muted2);
+            margin-bottom:0.85rem; padding:0.55rem 0.7rem; background:var(--surface2);
+            border:1px solid var(--border); border-radius:3px; line-height:1.7; }
+        .confirm-warn { font-family:var(--font-mono); font-size:0.67rem; color:var(--accent2);
+            margin-bottom:0.85rem; display:none; }
+        .confirm-btns { display:flex; gap:8px; }
+        .confirm-btns .ios-button { flex:1; padding:0.7rem; font-size:0.85rem; }
+        .confirm-cancel { flex:1; background:none; border:1px solid var(--border2); color:var(--muted2);
+            font-family:var(--font-display); font-weight:600; font-size:0.85rem;
+            padding:0.7rem; border-radius:3px; cursor:pointer; transition:all .15s; }
+        .confirm-cancel:hover { border-color:var(--muted); color:var(--text); }
+    </style>
+</head>
+<body>
+    <div class="cursor"></div>
+    <div class="cursor-ring"></div>
+    <div class="bg-grid"></div>
+    <div class="bg-glow"></div>
+    <div class="bg-glow2"></div>
+
+    <!-- NAV -->
+    <nav>
+        <a href="#" class="nav-logo">Images<span>Vora</span></a>
+        <div style="display:flex;align-items:center;gap:1rem;">
+            <div class="lang-toggle" id="langToggle">
+                <button type="button" data-lang="en" class="lang-opt active">EN</button>
+                <button type="button" data-lang="id" class="lang-opt">ID</button>
+            </div>
+            <a href="https://www.voralab.id" target="_blank" rel="noopener" class="nav-link">
+                www.voralab.id
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg>
+            </a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <div class="wrap hero">
+        <div class="eyebrow" data-i18n="hero_eyebrow">VoraLab Tool / Image Generator</div>
+        <h1 class="hero-title">Images<span class="accent">Vora</span></h1>
+        <p class="hero-sub" data-i18n="hero_sub">Generate images in bulk, without the hassle. Built for people who make things.</p>
+    </div>
+
+    <!-- SECTION 01 — COMPOSE -->
+    <section class="section">
+        <div class="wrap">
+            <div class="section-head reveal">
+                <span class="section-num">01</span>
+                <div>
+                    <h2 class="section-title" data-i18n-html="sec1_title">Compose<span class="accent">.</span></h2>
+                    <p class="section-desc" data-i18n="sec1_desc">Build prompts with AI, or write your own. Pick aspect ratio & format.</p>
+                </div>
+            </div>
+
+            <div class="compose-grid">
+                <!-- LEFT: Prompt Maker (rebuilt v6) -->
+                <div class="glass-panel space-y-3 reveal">
+                    <div class="flex items-center gap-2">
+                        <span class="text-lg">✨</span>
+                        <h3 class="text-base font-bold" style="color:var(--text)">Prompt Maker</h3>
+                        <span class="text-[10px] font-semibold" style="color:#0a0a0a;background:var(--accent);padding:0.1rem 0.5rem;border-radius:99px;">AI</span>
+                    </div>
+
+                    <!-- Segment tabs -->
+                    <div class="seg-tabs" id="segTabs">
+                        <button type="button" class="seg-tab active" data-seg="product" onclick="switchSeg('product')">📦 Product</button>
+                        <button type="button" class="seg-tab" data-seg="stock"   onclick="switchSeg('stock')">🎨 Stock Assets</button>
+                        <button type="button" class="seg-tab" data-seg="content" onclick="switchSeg('content')">📢 Content</button>
+                        <button type="button" class="seg-tab" data-seg="free"    onclick="switchSeg('free')">✏️ Free Style</button>
+                    </div>
+
+                    <!-- Category grid -->
+                    <div class="cat-grid" id="catGrid"></div>
+
+                    <!-- Dynamic fields -->
+                    <div class="dyn-fields" id="dynFields"></div>
+
+                    <!-- Keyword -->
+                    <div>
+                        <label class="field-label" data-i18n="pm_keyword">Theme / Keyword</label>
+                        <input id="pmKeyword" type="text" class="w-full p-3 ios-input text-sm" data-i18n-ph="pm_keyword_ph" placeholder="e.g. tropical flowers, vintage cars, space station...">
+                    </div>
+
+                    <!-- Count + Direct -->
+                    <div class="flex items-center justify-between gap-3 flex-wrap">
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs font-semibold" data-i18n="pm_count">Count</label>
+                            <select id="pmCount" class="p-2 ios-input text-xs">
+                                <option value="3">3</option>
+                                <option value="5" selected>5</option>
+                                <option value="8">8</option>
+                                <option value="10">10</option>
+                            </select>
+                        </div>
+                        <label class="flex items-center gap-2 text-xs font-medium cursor-pointer" style="color:var(--muted2)">
+                            <input id="pmDirect" type="checkbox" class="w-4 h-4" style="accent-color:var(--accent)">
+                            <span data-i18n="pm_direct">Use all directly</span>
+                        </label>
+                    </div>
+
+                    <!-- Brand Colors -->
+                    <div class="brand-section">
+                        <div class="brand-toggle-row" onclick="toggleBrandBody()">
+                            <span class="brand-toggle-label">🎨 Brand Colors <span id="brandActiveBadge" class="brand-active-badge" style="display:none">Active</span></span>
+                            <span class="brand-toggle-icon" id="brandToggleIcon">▸ Off</span>
+                        </div>
+                        <div class="brand-body" id="brandBody">
+                            <div class="brand-upload-row">
+                                <label class="brand-upload-btn" for="brandImageInput">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                                    Upload logo / gambar
+                                </label>
+                                <input type="file" id="brandImageInput" accept="image/*,.jpg,.jpeg,.png,.webp,.svg" style="display:none" onchange="extractBrandColors(this)">
+                                <button class="brand-clear" onclick="resetBrandColors()">Reset</button>
+                            </div>
+                            <div class="brand-swatches" id="brandSwatches">
+                                <div class="brand-swatch-wrap"><div class="brand-swatch" id="swatch0" style="background:#cccccc;"></div><span class="brand-swatch-hex" id="hex0">#cccccc</span></div>
+                                <div class="brand-swatch-wrap"><div class="brand-swatch" id="swatch1" style="background:#999999;"></div><span class="brand-swatch-hex" id="hex1">#999999</span></div>
+                                <div class="brand-swatch-wrap"><div class="brand-swatch" id="swatch2" style="background:#444444;"></div><span class="brand-swatch-hex" id="hex2">#444444</span></div>
+                            </div>
+                            <canvas id="brandCanvas" style="display:none"></canvas>
+                            <div class="brand-hint" id="brandHint">Upload logo atau gambar — AI otomatis ambil 3 warna dominan dan inject ke semua prompt.</div>
+                        </div>
+                    </div>
+
+                    <button id="pmGenerateBtn" class="w-full py-3 text-sm btn-orange flex items-center justify-center gap-2">
+                        <span id="pmBtnText" data-i18n="pm_generate">Create Prompts</span>
+                        <div id="pmLoader" class="hidden loader" style="width:18px;height:18px;border:2px solid rgba(10,10,10,0.3);border-top:2px solid #0a0a0a;"></div>
+                    </button>
+
+                    <div id="pmResults" class="hidden space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold" style="color:var(--text)" data-i18n="pm_pick">Pick the prompts to use:</span>
+                            <div class="flex gap-2">
+                                <button id="pmSelectAll" class="text-[11px] font-bold hover:underline" style="color:var(--accent);background:none;border:none;cursor:pointer;" data-i18n="pm_select_all">Select All</button>
+                                <button id="pmDeselectAll" class="text-[11px] font-bold hover:underline" style="color:var(--muted2);background:none;border:none;cursor:pointer;" data-i18n="pm_deselect_all">Clear</button>
+                            </div>
+                        </div>
+                        <div id="pmList" class="space-y-2 max-h-60 overflow-y-auto"></div>
+                        <button id="pmApplyBtn" class="w-full py-2.5 ios-button text-sm">
+                            <span data-i18n="pm_apply">Add to Prompt List</span> (<span id="pmSelectedCount">0</span>)
+                        </button>
+                    </div>
+
+                    <div id="pmError" class="hidden text-xs font-medium" style="color:var(--accent2)"></div>
+                </div>
+
+                <!-- RIGHT: prompt textarea + settings -->
+                <div class="space-y-4 reveal">
+                    <div class="glass-panel space-y-4">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="field-label" style="margin-bottom:0" data-i18n="prompt_label">Prompts (one per line)</label>
+                                <div class="flex items-center gap-2">
+                                    <button id="clearBtn" type="button" class="expand-btn" title="Clear all prompts">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></svg>
+                                        <span data-i18n="clear_all">Clear</span>
+                                    </button>
+                                    <button id="expandBtn" type="button" class="expand-btn" title="Fullscreen editor">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+                                        <span data-i18n="expand">Expand</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="dropZone" class="relative">
+                                <textarea id="promptInput" rows="7" class="w-full p-4 ios-input text-sm" data-i18n-ph="prompt_ph" placeholder="Example:&#10;A cute cat wearing sunglasses&#10;Futuristic city at night&#10;Cyberpunk robot garden&#10;&#10;Tip: drag & drop a .txt file here to bulk import prompts"></textarea>
+                                <div id="dropOverlay" class="hidden absolute inset-0 flex items-center justify-center pointer-events-none" style="border:2px dashed var(--accent);background:rgba(232,255,71,0.08);border-radius:3px;">
+                                    <span class="text-sm font-semibold" style="color:var(--accent)" data-i18n="drop_here">Drop the .txt file here</span>
+                                </div>
+                            </div>
+                            <div class="mt-2 flex justify-between text-xs panel-label">
+                                <span id="promptCount">Total Prompts: 0</span>
+                                <span id="batchInfo">Batch size: 5</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="field-label" data-i18n="engine_label">Engine</label>
+                            <div id="engineToggle" class="engine-toggle">
+                                <button type="button" data-engine="imagen4" class="engine-opt active">
+                                    <span class="engine-name">Imagen 4</span>
+                                    <span class="engine-desc" data-i18n="engine_imagen_desc">Sharp, supports aspect ratio</span>
+                                </button>
+                                <button type="button" data-engine="nanobanana" class="engine-opt">
+                                    <span class="engine-name">Nano Banana</span>
+                                    <span class="engine-desc" data-i18n="engine_nano_desc">Fast, supports 10 aspect ratios</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div id="aspectWrap">
+                                <label class="field-label" data-i18n="aspect">Aspect Ratio</label>
+                                <select id="aspectRatio" class="w-full p-3 ios-input text-sm">
+                                    <option value="1:1">1:1 (Square)</option>
+                                    <option value="2:3">2:3 (Portrait)</option>
+                                    <option value="3:2">3:2 (Landscape)</option>
+                                    <option value="3:4">3:4 (Portrait)</option>
+                                    <option value="4:3">4:3 (Classic)</option>
+                                    <option value="4:5">4:5 (Social Portrait)</option>
+                                    <option value="5:4">5:4 (Social Landscape)</option>
+                                    <option value="9:16">9:16 (Story)</option>
+                                    <option value="16:9">16:9 (Widescreen)</option>
+                                    <option value="21:9">21:9 (Ultrawide)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="field-label" data-i18n="format">Image Format</label>
+                                <select id="outputFormat" class="w-full p-3 ios-input text-sm">
+                                    <option value="jpg" data-i18n="fmt_jpg">JPG / JPEG (Smaller & Efficient)</option>
+                                    <option value="png" data-i18n="fmt_png">PNG (Lossless — best for upscaling)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 02 — GENERATE -->
+    <section class="section">
+        <div class="wrap">
+            <div class="section-head reveal">
+                <span class="section-num">02</span>
+                <div>
+                    <h2 class="section-title" data-i18n-html="sec2_title">Generate<span class="accent">.</span></h2>
+                    <p class="section-desc" data-i18n="sec2_desc">Processed in batches with automatic delays. Failed prompts can be retried.</p>
+                </div>
+            </div>
+
+            <div class="gen-grid">
+                <div class="space-y-4 reveal">
+                    <div class="glass-panel space-y-3">
+                        <div>
+                            <label class="field-label" style="margin-bottom:0.5rem">Batch Size</label>
+                            <div class="batch-toggle">
+                                <button type="button" class="batch-btn" data-size="1" onclick="setBatch(1)">1</button>
+                                <button type="button" class="batch-btn" data-size="3" onclick="setBatch(3)">3</button>
+                                <button type="button" class="batch-btn active" data-size="5" onclick="setBatch(5)">5</button>
+                                <button type="button" class="batch-btn" data-size="8" onclick="setBatch(8)">8</button>
+                                <button type="button" class="batch-btn" data-size="10" onclick="setBatch(10)">10</button>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <button id="generateBtn" class="flex-1 py-4 ios-button text-lg" data-i18n="btn_generate">Start Generating</button>
+                            <button id="stopBtn" class="hidden px-6 py-4 text-lg btn-orange" data-i18n="btn_stop">Stop</button>
+                        </div>
+                    </div>
+
+                    <!-- Failed Prompts Panel -->
+                    <div id="failedPanel" class="hidden glass-panel space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-bold" style="color:var(--text)"><span data-i18n="failed_title">Failed Prompts</span> (<span id="failedPanelCount">0</span>)</h3>
+                            <button id="retryBtn" class="text-xs font-bold py-1.5 px-3 ios-button" data-i18n="btn_retry">Retry All</button>
+                        </div>
+                        <div id="failedList" class="space-y-2 max-h-48 overflow-y-auto"></div>
+                        <p class="text-[11px] panel-label" style="line-height:1.6;" data-i18n="failed_note">
+                            * Failures due to rate limits / connection usually succeed on retry. Failures due to content-filter blocks will keep failing even if retried.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Statistics -->
+                <div class="glass-panel grid grid-cols-2 gap-4 reveal" style="align-self:start;">
+                    <div class="text-center">
+                        <div class="text-3xl font-bold" id="successStat" style="color:var(--accent)">0</div>
+                        <div class="text-xs font-semibold panel-label mt-1" data-i18n="stat_success">Success</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold" id="failedStat" style="color:var(--accent2)">0</div>
+                        <div class="text-xs font-semibold panel-label mt-1" data-i18n="stat_failed">Failed</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 03 — RESULTS -->
+    <section class="section">
+        <div class="wrap">
+            <div class="section-head reveal">
+                <span class="section-num">03</span>
+                <div>
+                    <h2 class="section-title" data-i18n-html="sec3_title">Results<span class="accent">.</span></h2>
+                    <p class="section-desc" data-i18n="sec3_desc">Tap an image to enlarge. All results download automatically.</p>
+                </div>
+            </div>
+
+            <div class="glass-panel min-h-[400px] reveal">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold" style="color:var(--text)" data-i18n="preview_title">Result Preview</h3>
+                    <div id="globalLoader" class="hidden flex items-center gap-2">
+                        <span class="text-sm font-medium" id="loaderText" style="color:var(--accent)">Generating...</span>
+                        <div class="loader"></div>
+                    </div>
+                </div>
+
+                <div id="iosHint" class="hidden" style="margin-bottom:1rem;padding:0.7rem 0.9rem;border:1px solid var(--border2);border-left:3px solid var(--accent);border-radius:4px;font-family:var(--font-mono);font-size:0.66rem;color:var(--muted2);line-height:1.6;">
+                    <span data-i18n="ios_hint">On iPhone/iPad, images aren't auto-downloaded (it would reload the page). Tap the ⬇ button on each image to save it.</span>
+                </div>
+
+                <div id="resultsGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+
+                <div id="emptyState" class="flex flex-col items-center justify-center h-64" style="color:var(--muted)">
+                    <svg class="w-14 h-14 mb-4 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <p style="font-family:var(--font-mono);font-size:0.78rem;" data-i18n="empty_state">No images generated yet</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-logo">Images<span>Vora</span></div>
+        <div class="footer-meta">
+            <div class="footer-grace">Built by the grace of God.</div>
+            <div>
+                <a href="https://www.voralab.id" target="_blank" rel="noopener">www.voralab.id</a> · © 2026 VoraLab
+                <button id="discOpenBtn" class="footer-info-btn" type="button">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                    <span data-i18n="disclaimer_btn">Disclaimer</span>
+                </button>
+            </div>
+            <div class="footer-license" data-i18n="license_notice">Free to use. Do not modify, sell, or claim as your own.</div>
+        </div>
+    </footer>
+
+    <!-- INSIGHTS PANEL (hidden feature) -->
+    <div id="insightsPanel" onclick="if(event.target===this)closeInsights()">
+        <div class="ins-box">
+            <div class="ins-header">
+                <div>
+                    <div class="ins-title">Market <span class="accent">Insights</span></div>
+                    <div class="ins-meta" id="insMeta">Adobe Stock · Keyword Opportunity Analysis</div>
+                </div>
+                <button class="ins-close" onclick="closeInsights()">×</button>
+            </div>
+            <div class="ins-nav" id="insNav"></div>
+            <div class="ins-content" id="insContent"></div>
+        </div>
+    </div>
+
+    <!-- CONFIRM MODAL -->
+    <div id="confirmModal" onclick="if(event.target===this)closeConfirm()">
+        <div class="confirm-box">
+            <div class="confirm-title">⚡ Siap generate <span class="accent" id="confirmCount">0</span> gambar</div>
+            <div class="confirm-detail" id="confirmDetail"></div>
+            <div class="confirm-warn" id="confirmWarn">⚠ 8+ gambar = proses bisa butuh 2–4 menit. Pastikan koneksi stabil.</div>
+            <div class="confirm-btns">
+                <button class="ios-button" onclick="confirmGenerate()">Gas! 🚀</button>
+                <button class="confirm-cancel" onclick="closeConfirm()">Ubah dulu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BULK FULLSCREEN EDITOR -->
+    <div id="bulkEditor">
+        <div class="bulk-head">
+            <div class="bulk-title">Images<span>Vora</span> · <span data-i18n="bulk_title">Prompt Editor</span></div>
+            <div class="bulk-head-right">
+                <span id="bulkCount" class="bulk-count">0</span>
+                <button class="bulk-close" type="button" onclick="closeBulkEditor()" data-i18n="bulk_done">Done</button>
+            </div>
+        </div>
+        <textarea id="bulkTextarea" spellcheck="false" data-i18n-ph="prompt_ph"></textarea>
+    </div>
+
+    <!-- AUTO-GENERATE COUNTDOWN OVERLAY -->
+    <div id="autoGenOverlay" onclick="cancelAutoGenerate()">
+        <div class="autogen-box" onclick="event.stopPropagation()">
+            <div class="autogen-num" id="autoGenNum">3</div>
+            <div class="autogen-label" data-i18n="autogen_label">Generating automatically...</div>
+            <button class="autogen-cancel" type="button" onclick="cancelAutoGenerate()" data-i18n="autogen_cancel">Cancel</button>
+        </div>
+    </div>
+
+    <!-- DISCLAIMER MODAL -->
+    <div id="disclaimerModal" onclick="if(event.target===this)closeDisclaimer()">
+        <div class="disc-box">
+            <button class="disc-close" type="button" onclick="closeDisclaimer()">&times;</button>
+            <div class="disc-eyebrow">Disclaimer & Ketentuan Penggunaan</div>
+            <h2>Tanggung Jawab<span class="accent">.</span></h2>
+
+            <h3>Penggunaan yang Bertanggung Jawab</h3>
+            <ul>
+                <li>Pengguna bertanggung jawab penuh atas seluruh prompt yang dimasukkan dan gambar yang dihasilkan melalui ImagesVora.</li>
+                <li>Dilarang menggunakan alat ini untuk membuat konten ilegal, termasuk namun tidak terbatas pada: konten kekerasan ekstrem, konten seksual, ujaran kebencian, pelecehan, penipuan, atau materi yang membahayakan anak.</li>
+                <li>Dilarang membuat gambar yang melanggar hak ন্যায্য, merek dagang, hak kekayaan intelektual, atau hak privasi pihak lain (misalnya meniru karakter berlisensi, logo brand, atau wajah orang nyata tanpa izin).</li>
+                <li>Pengguna wajib mematuhi hukum yang berlaku di wilayahnya masing-masing serta kebijakan penyedia model gambar (Google Imagen) yang digunakan di balik alat ini.</li>
+            </ul>
+
+            <h3>Batasan Tanggung Jawab VoraLab</h3>
+            <ul>
+                <li>ImagesVora adalah alat bantu. VoraLab hanya menyediakan antarmuka dan tidak membuat, mengkurasi, atau menyetujui gambar apa pun yang dihasilkan pengguna.</li>
+                <li>VoraLab tidak menyimpan prompt maupun hasil gambar Anda; seluruh proses dan unduhan terjadi di perangkat Anda.</li>
+                <li>VoraLab melepaskan diri dari segala tanggung jawab atas penyalahgunaan alat, serta atas segala kerugian, klaim, atau konsekuensi hukum yang timbul dari konten yang dibuat pengguna.</li>
+                <li>Tidak ada jaminan bahwa hasil generasi bebas dari kemiripan dengan karya berhak cipta. Verifikasi dan tanggung jawab akhir sepenuhnya ada pada pengguna.</li>
+            </ul>
+
+            <h3>Lisensi & Hak Cipta</h3>
+            <ul>
+                <li>ImagesVora dibuat oleh VoraLab dan dibagikan <strong style="color:var(--text)">GRATIS</strong> untuk digunakan siapa saja.</li>
+                <li>Anda DILARANG memodifikasi, mengganti merek (rebrand), menjual, menjual-ulang, atau mendistribusikan ulang kode alat ini.</li>
+                <li>Anda DILARANG mengklaim alat ini, sebagian atau seluruhnya, sebagai karya buatan sendiri.</li>
+                <li>Kode dan seluruh elemennya adalah © 2026 VoraLab. Penggunaan komersial tanpa izin atau penghapusan atribusi merupakan pelanggaran hak cipta.</li>
+            </ul>
+
+            <div class="disc-divider"></div>
+            <div class="disc-en">
+                <h3>English (Summary)</h3>
+                <ul>
+                    <li>You are solely responsible for all prompts you enter and all images you generate with ImagesVora.</li>
+                    <li>Do not create illegal, infringing, or harmful content, or anything that violates others' copyright, trademark, or privacy rights.</li>
+                    <li>Generated output is subject to the underlying model provider's (Google Imagen) policies and applicable law.</li>
+                    <li>ImagesVora is a tool only. VoraLab does not store your data and disclaims all liability for user-generated content and any misuse. Final responsibility rests entirely with you.</li>
+                    <li><strong style="color:var(--text)">License:</strong> This tool is free to use. You may not modify, rebrand, sell, resell, redistribute, or claim it as your own. © 2026 VoraLab — all rights reserved.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div id="previewModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" onclick="closeModal()">
+        <button class="absolute top-6 right-6 text-4xl" style="color:var(--text);background:none;border:none;cursor:pointer;">&times;</button>
+        <div class="max-w-4xl max-h-[90vh] overflow-hidden" style="border-radius:4px;" onclick="event.stopPropagation()">
+            <img id="modalImg" src="" alt="Zoom Preview" class="zoom-img w-full h-full object-contain">
+        </div>
+    </div>
+
+    <script>
+        // ===== Konfigurasi terpusat (ubah di sini, bukan di tengah logika) =====
+        const CONFIG = {
+            apiKey: "", // API Key provided by Canvas
+            model: "imagen-3.0-generate-001",
+            endpoint: "https://generativelanguage.googleapis.com/v1beta/models",
+            nanoModel: "gemini-2.5-flash-image",
+            nanoEndpoint: "https://generativelanguage.googleapis.com/v1/models",
+            batchSize: 5,
+            interBatchDelaySec: 10,
+            maxRetries: 3,
+            jpgQuality: 0.95,
+        };
+
+        const apiKey = CONFIG.apiKey; // alias kompatibilitas
+
+        const promptInput = document.getElementById('promptInput');
+        const generateBtn = document.getElementById('generateBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const resultsGrid = document.getElementById('resultsGrid');
+        const successStat = document.getElementById('successStat');
+        const failedStat = document.getElementById('failedStat');
+        const promptCountDisplay = document.getElementById('promptCount');
+        const globalLoader = document.getElementById('globalLoader');
+        const loaderText = document.getElementById('loaderText');
+        const emptyState = document.getElementById('emptyState');
+        const dropZone = document.getElementById('dropZone');
+        const dropOverlay = document.getElementById('dropOverlay');
+        const failedPanel = document.getElementById('failedPanel');
+        const failedPanelCount = document.getElementById('failedPanelCount');
+        const failedList = document.getElementById('failedList');
+        const retryBtn = document.getElementById('retryBtn');
+
+        let successCount = 0;
+        let failedCount = 0;
+        let isGenerating = false;
+        let cancelRequested = false;      // saklar untuk Stop
+        let failedPrompts = [];           // daftar prompt yang gagal { prompt, reason }
+        let fileCounter = 0;              // counter unik untuk nama file (anti-tabrakan)
+
+        // Update total count as user types
+        promptInput.addEventListener('input', () => {
+            const lines = promptInput.value.split('\n').filter(l => l.trim() !== "");
+            if (typeof refreshPromptCount === 'function') { refreshPromptCount(); } else { promptCountDisplay.innerText = `Total Prompt: ${lines.length}`; }
+        });
+
+        // ===== Drag & drop file .txt =====
+        ['dragenter', 'dragover'].forEach(evt => {
+            dropZone.addEventListener(evt, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropOverlay.classList.remove('hidden');
+            });
+        });
+        ['dragleave', 'drop'].forEach(evt => {
+            dropZone.addEventListener(evt, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropOverlay.classList.add('hidden');
+            });
+        });
+        dropZone.addEventListener('drop', (e) => {
+            const file = e.dataTransfer.files && e.dataTransfer.files[0];
+            if (!file) return;
+            if (!file.name.toLowerCase().endsWith('.txt') && file.type !== 'text/plain') {
+                showMessage(t('txt_only'), true);
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => {
+                const incoming = String(reader.result).replace(/\r\n/g, '\n').trim();
+                const existing = promptInput.value.trim();
+                promptInput.value = existing ? (existing + '\n' + incoming) : incoming;
+                promptInput.dispatchEvent(new Event('input')); // refresh counter
+            };
+            reader.onerror = () => showMessage(t('read_fail'), true);
+            reader.readAsText(file);
+        });
+
+        // ===== Helper: custom message (pengganti alert) =====
+        function showMessage(msg, isError = false) {
+            const div = document.createElement('div');
+            div.style.position = 'fixed';
+            div.style.bottom = '30px';
+            div.style.left = '50%';
+            div.style.transform = 'translateX(-50%)';
+            div.style.backgroundColor = isError ? 'var(--accent2)' : 'var(--accent)';
+            div.style.color = '#0a0a0a';
+            div.style.padding = '10px 20px';
+            div.style.borderRadius = '4px';
+            div.style.fontFamily = 'var(--font-mono)';
+            div.style.fontSize = '12px';
+            div.style.fontWeight = 'bold';
+            div.style.zIndex = '9999';
+            div.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+            div.innerText = msg;
+            document.body.appendChild(div);
+            setTimeout(() => {
+                div.style.opacity = '0';
+                div.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => div.remove(), 300);
+            }, 3000);
+        }
+
+        // ===== Helper: klasifikasi alasan kegagalan =====
+        function classifyError(error) {
+            const msg = (error && error.message ? error.message : String(error)).toLowerCase();
+            if (msg.includes('429') || msg.includes('rate')) return t('err_rate');
+            if (msg.includes('safety') || msg.includes('blocked') || msg.includes('filter') || msg.includes('no image')) return t('err_blocked');
+            if (msg.includes('failed to fetch') || msg.includes('network')) return t('err_network');
+            if (msg.includes('403')) return t('err_403');
+            return error && error.message ? error.message : t('err_unknown');
+        }
+
+        // ===== Render panel prompt gagal =====
+        function renderFailedPanel() {
+            if (failedPrompts.length === 0) {
+                failedPanel.classList.add('hidden');
+                return;
+            }
+            failedPanel.classList.remove('hidden');
+            failedPanelCount.innerText = failedPrompts.length;
+            failedList.innerHTML = "";
+            failedPrompts.forEach((item) => {
+                const row = document.createElement('div');
+                row.className = "p-2.5 rounded-xl bg-white/40 border border-white/30";
+                row.innerHTML = `
+                    <div class="text-xs font-medium text-gray-700 line-clamp-2">${escapeHtml(item.prompt)}</div>
+                    <div class="text-[10px] font-semibold text-red-500 mt-0.5">${escapeHtml(item.reason)}</div>
+                `;
+                failedList.appendChild(row);
+            });
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // Exponential backoff retry helper
+        async function fetchWithRetry(url, options, maxRetries = CONFIG.maxRetries) {
+            let delay = 1000;
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) return response;
+                    
+                    const errorText = await response.text();
+                    if (response.status === 429) { // Rate limit
+                        if (i === maxRetries - 1) throw new Error(`HTTP Error: 429 (rate limit) - ${errorText}`);
+                        await new Promise(r => setTimeout(r, delay));
+                        delay *= 2;
+                        continue;
+                    }
+                    throw new Error(`HTTP Error: ${response.status} - ${errorText}`);
+                } catch (err) {
+                    if (i === maxRetries - 1) throw err;
+                    await new Promise(r => setTimeout(r, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+        async function generateImage(prompt, ratio, engine) {
+            if (engine === 'nanobanana') {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${apiKey}`;
+                const payload = {
+                    contents: [{
+                        role: 'user',
+                        parts: [{ text: prompt }]
+                    }],
+                    generationConfig: {
+                        responseModalities: ['IMAGE'],
+                        imageConfig: { aspectRatio: ratio }
+                    }
+                };
+                
+                const response = await fetchWithRetry(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+                
+                if (part && part.inlineData && part.inlineData.data) {
+                    return part.inlineData.data;
+                }
+                
+                if (result.error) throw new Error(result.error.message || JSON.stringify(result.error));
+                throw new Error("No image data returned from Nano Banana model.");
+            } else {
+                // Use standard Imagen 4 API endpoint
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
+    
+                // Ensure the ratio is supported by Imagen 4 (fallback to 1:1 if not)
+                const supportedRatios = ['1:1', '3:4', '4:3', '9:16', '16:9'];
+                const finalRatio = supportedRatios.includes(ratio) ? ratio : '1:1';
+    
+                const payload = {
+                    instances: { prompt: prompt },
+                    parameters: {
+                        sampleCount: 1,
+                        aspectRatio: finalRatio
+                    }
+                };
+                
+                const response = await fetchWithRetry(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+    
+                const result = await response.json();
+                
+                // Imagen returns data inside the predictions array as bytesBase64Encoded
+                const base64 = result?.predictions?.[0]?.bytesBase64Encoded;
+                if (base64) return base64;
+                
+                if (result.error) throw new Error(result.error.message || JSON.stringify(result.error));
+                throw new Error("No image data returned from Imagen model. Please try again.");
+            }
+        }
+
+        // Konversi base64 dari API ke format pilihan user (PNG/JPG), resolusi asli Imagen (tanpa upscale)
+        function convertImageFormat(base64Str, targetFormat) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+
+                    const mimeType = targetFormat === 'png' ? 'image/png' : 'image/jpeg';
+                    const dataUrl = canvas.toDataURL(mimeType, targetFormat === 'png' ? undefined : CONFIG.jpgQuality);
+                    const base64Result = dataUrl.split(',')[1];
+                    resolve(base64Result);
+                };
+                img.onerror = (err) => reject(err);
+                img.src = `data:image/jpeg;base64,${base64Str}`;
+            });
+        }
+
+        // Deteksi iOS / Safari mobile (auto-download data: URL bikin refresh di sini)
+        const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+        // Konversi base64 -> Blob (lebih ramah Safari daripada data: URL)
+        function base64ToBlob(base64, mimeType) {
+            const byteChars = atob(base64);
+            const len = byteChars.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) bytes[i] = byteChars.charCodeAt(i);
+            return new Blob([bytes], { type: mimeType });
+        }
+
+        // Download via Blob URL. Di iOS auto-download dilewati (memicu refresh Canvas).
+        // Mengembalikan true jika benar-benar memicu unduhan.
+        function downloadImage(base64, filename, format) {
+            const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
+            if (IS_IOS) return false; // jangan auto-download di iOS; gambar tetap aman di galeri
+            try {
+                const blob = base64ToBlob(base64, mimeType);
+                const blobUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                // bebaskan memori setelah jeda singkat
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 4000);
+                return true;
+            } catch (e) {
+                console.warn("Download gagal:", e);
+                return false;
+            }
+        }
+
+        function addImageToGallery(base64, prompt, format, filename) {
+            emptyState.style.display = 'none';
+            const container = document.createElement('div');
+            container.className = "relative group aspect-square rounded-2xl overflow-hidden glass-panel animate-in fade-in zoom-in duration-500 shadow-md";
+
+            const img = document.createElement('img');
+            const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
+            img.src = `data:${mimeType};base64,${base64}`;
+            img.className = "w-full h-full object-cover cursor-pointer hover:scale-110 transition-transform duration-500";
+            img.onclick = () => openModal(img.src);
+
+            const overlay = document.createElement('div');
+            overlay.className = "absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2 pointer-events-none";
+            overlay.innerHTML = `<span class="text-[10px] text-white line-clamp-2">${prompt}</span>`;
+
+            // Tombol download per gambar (selalu ada; penting untuk iOS yang tidak auto-download)
+            const dlBtn = document.createElement('a');
+            dlBtn.className = "img-dl-btn";
+            dlBtn.title = "Download";
+            dlBtn.setAttribute('download', filename || 'image.' + (format === 'png' ? 'png' : 'jpg'));
+            dlBtn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>`;
+            // pakai blob URL agar ramah Safari; di iOS membuka gambar untuk disimpan manual
+            try {
+                const blobUrl = URL.createObjectURL(base64ToBlob(base64, mimeType));
+                dlBtn.href = blobUrl;
+                if (IS_IOS) dlBtn.target = '_blank'; // iOS: buka untuk "Save to Photos"
+            } catch (e) {
+                dlBtn.href = `data:${mimeType};base64,${base64}`;
+            }
+
+            container.appendChild(img);
+            container.appendChild(overlay);
+            container.appendChild(dlBtn);
+            resultsGrid.insertBefore(container, resultsGrid.firstChild);
+        }
+
+        // Atur tampilan tombol & loader saat mulai/selesai
+        function setGeneratingUI(active) {
+            isGenerating = active;
+            generateBtn.disabled = active;
+            generateBtn.classList.toggle('opacity-50', active);
+            stopBtn.classList.toggle('hidden', !active);
+            globalLoader.classList.toggle('hidden', !active);
+        }
+
+        // Inti proses: menerima daftar prompt apa pun (batch awal atau retry)
+        async function processPrompts(prompts) {
+            if (isGenerating) return;
+            if (!prompts || prompts.length === 0) return;
+
+            const ratio = document.getElementById('aspectRatio').value;
+            const format = document.getElementById('outputFormat').value;
+            const engine = document.querySelector('#engineToggle .engine-opt.active')?.dataset.engine || 'imagen4';
+            const extension = format === 'png' ? 'png' : 'jpg';
+
+            cancelRequested = false;
+            setGeneratingUI(true);
+
+            // Kumpulan prompt gagal untuk run ini (menggantikan daftar lama)
+            const newFailed = [];
+
+            const batchSize = CONFIG.batchSize;
+            outer:
+            for (let i = 0; i < prompts.length; i += batchSize) {
+                if (cancelRequested) break;
+
+                const currentBatch = prompts.slice(i, i + batchSize);
+                loaderText.innerText = `${t('generating')} ${i + 1}-${Math.min(i + batchSize, prompts.length)} ${t('of')} ${prompts.length}...`;
+
+                const promises = currentBatch.map(async (prompt) => {
+                    if (cancelRequested) return;
+                    try {
+                        const rawBase64 = await generateImage(prompt, ratio, engine);
+                        if (cancelRequested) return; // jangan proses/ download kalau sudah dibatalkan
+
+                        const processedBase64 = await convertImageFormat(rawBase64, format);
+
+                        successCount++;
+                        successStat.innerText = successCount;
+
+                        fileCounter++;
+                        const fname = `image_${Date.now()}_${fileCounter}.${extension}`;
+                        addImageToGallery(processedBase64, prompt, format, fname);
+                        downloadImage(processedBase64, fname, format);
+                    } catch (error) {
+                        console.error("Generate failed for prompt:", prompt, error);
+                        failedCount++;
+                        failedStat.innerText = failedCount;
+                        newFailed.push({ prompt: prompt, reason: classifyError(error) });
+                    }
+                });
+
+                await Promise.all(promises);
+
+                if (cancelRequested) break outer;
+
+                // Jeda antar batch (kecuali batch terakhir), bisa diputus oleh Stop
+                if (i + batchSize < prompts.length) {
+                    for (let sec = CONFIG.interBatchDelaySec; sec > 0; sec--) {
+                        if (cancelRequested) break;
+                        loaderText.innerText = `${t('inter_batch')}: ${sec}s...`;
+                        await new Promise(r => setTimeout(r, 1000));
+                    }
+                }
+            }
+
+            // Perbarui daftar prompt gagal & panel
+            failedPrompts = newFailed;
+            renderFailedPanel();
+
+            setGeneratingUI(false);
+            loaderText.innerText = cancelRequested ? t('stopped') : t('done');
+            cancelRequested = false;
+        }
+
+        // Dipanggil tombol "Mulai Generate"
+        async function runBatchProcess() {
+            if (isGenerating) return;
+            const fullText = promptInput.value.trim();
+            if (!fullText) return;
+            const allPrompts = fullText.split('\n').filter(p => p.trim() !== "");
+            if (allPrompts.length > 3) {
+                showConfirmModal(allPrompts);
+            } else {
+                executeBatch(allPrompts);
+            }
+        }
+
+        async function executeBatch(allPrompts) {
+            successCount = 0;
+            failedCount = 0;
+            successStat.innerText = "0";
+            failedStat.innerText = "0";
+            resultsGrid.innerHTML = "";
+            emptyState.style.display = 'flex';
+            failedPrompts = [];
+            renderFailedPanel();
+            await processPrompts(allPrompts);
+        }
+
+        // Dipanggil tombol "Coba Lagi Semua": ulang khusus prompt gagal
+        async function retryFailedPrompts() {
+            if (isGenerating) return;
+            if (failedPrompts.length === 0) return;
+
+            const toRetry = failedPrompts.map(f => f.prompt);
+            // Kosongkan daftar gagal; yang masih gagal akan terisi ulang oleh processPrompts
+            failedPrompts = [];
+            renderFailedPanel();
+
+            await processPrompts(toRetry);
+        }
+
+        function openModal(src) {
+            const modal = document.getElementById('previewModal');
+            const modalImg = document.getElementById('modalImg');
+            modalImg.src = src;
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            
+            // Initial zoom state
+            modalImg.style.transform = 'scale(1)';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('previewModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Add zoom functionality on click within modal
+        document.getElementById('modalImg').addEventListener('click', function(e) {
+            const currentScale = this.style.transform.match(/scale\(([^)]+)\)/);
+            const scale = currentScale ? parseFloat(currentScale[1]) : 1;
+            if (scale === 1) {
+                this.style.transform = 'scale(2)';
+                this.style.cursor = 'zoom-out';
+            } else {
+                this.style.transform = 'scale(1)';
+                this.style.cursor = 'zoom-in';
+            }
+        });
+
+        generateBtn.onclick = runBatchProcess;
+
+        // ============================================================
+        // ===== PROMPT MAKER (AI) ====================================
+        // ============================================================
+
+        // Element refs
+        const pmKeyword = document.getElementById('pmKeyword');
+        const pmCount = document.getElementById('pmCount');
+        const pmDirect = document.getElementById('pmDirect');
+        const pmGenerateBtn = document.getElementById('pmGenerateBtn');
+        const pmBtnText = document.getElementById('pmBtnText');
+        const pmLoader = document.getElementById('pmLoader');
+        const pmResults = document.getElementById('pmResults');
+        const pmList = document.getElementById('pmList');
+        const pmApplyBtn = document.getElementById('pmApplyBtn');
+        const pmSelectedCount = document.getElementById('pmSelectedCount');
+        const pmSelectAll = document.getElementById('pmSelectAll');
+        const pmDeselectAll = document.getElementById('pmDeselectAll');
+        const pmError = document.getElementById('pmError');
+
+        // Konfigurasi model teks untuk Prompt Maker (Canvas yang urus auth/key)
+        const PM_TEXT_MODEL = "gemini-2.5-flash";
+
+        // ============================================================
+        // ===== CATEGORIES CONFIG v6 =================================
+        // ============================================================
+
+        const SEGMENTS = {
+            product: { en:'📦 Product', id:'📦 Produk' },
+            stock:   { en:'🎨 Stock Assets', id:'🎨 Stock Assets' },
+            content: { en:'📢 Content', id:'📢 Konten' },
+            free:    { en:'✏️ Free Style', id:'✏️ Free Style' },
+        };
+
+        const CATEGORIES = {
+            mockup:        { seg:'product', ar:'1:1', fmt:'png', label:{en:'Mockup',id:'Mockup'},
+                fields:[
+                    {id:'ftype',label:{en:'Product Type',id:'Jenis Produk'},type:'chips',opts:['T-Shirt','Hoodie','Tote Bag','Mug','Phone Case','Book','Packaging']},
+                    {id:'fbg',label:{en:'Background',id:'Background'},type:'chips',opts:['Studio White','Studio Grey','Lifestyle','Flat Lay','Minimal']},
+                ],
+                guide:'Professional product mockup photo of a {ftype}, {fbg} background, photorealistic, commercial photography, clean and polished, for design presentation'},
+            book_cover:    { seg:'product', ar:'3:4', fmt:'jpg', label:{en:'Book / Cover',id:'Book / Cover'},
+                fields:[
+                    {id:'ftype',label:{en:'Cover Type',id:'Jenis Cover'},type:'chips',opts:['Novel','Non-fiction','Album Art','Online Course','Magazine','Comic']},
+                    {id:'fstyle',label:{en:'Visual Style',id:'Gaya Visual'},type:'chips',opts:['Illustrated','Typographic','Photographic','Minimalist','Abstract','Dark & Moody']},
+                ],
+                guide:'Book cover design, {ftype} type, {fstyle} visual style, professional publishing quality, compelling composition, no text overlaid'},
+            food_promo:    { seg:'product', ar:'4:3', fmt:'jpg', label:{en:'Food Promo',id:'Promo Makanan'},
+                fields:[
+                    {id:'ftype',label:{en:'Content Type',id:'Jenis'},type:'chips',opts:['Menu Promo','New Product','Seasonal','Price Banner','Brand Campaign']},
+                    {id:'fstyle',label:{en:'Style',id:'Gaya'},type:'chips',opts:['Modern Clean','Traditional','Playful','Premium Elegant']},
+                ],
+                guide:'Food & beverage promotional visual, {ftype} content, {fstyle} aesthetic, appetizing and vibrant, space for text overlay, social media ready'},
+            sticker:       { seg:'stock', ar:'1:1', fmt:'png', label:{en:'Sticker / Clipart',id:'Sticker / Clipart'},
+                fields:[
+                    {id:'fstyle',label:{en:'Art Style',id:'Gaya'},type:'chips',opts:['Flat','Cartoon','Kawaii','Die-cut','Retro','3D']},
+                ],
+                guide:'Sticker design, {fstyle} art style, single object, thick white outline, clean white/transparent background, vibrant solid colors, print-ready clipart'},
+            pattern:       { seg:'stock', ar:'1:1', fmt:'jpg', label:{en:'Patterns & BG',id:'Pola & BG'},
+                fields:[
+                    {id:'ftype',label:{en:'Pattern Type',id:'Tipe Pola'},type:'chips',opts:['Seamless Repeat','Abstract','Geometric','Floral','Minimal','Vintage']},
+                    {id:'fmood',label:{en:'Color Mood',id:'Mood Warna'},type:'chips',opts:['Warm Tones','Cool Tones','Monochrome','Vibrant','Pastel','Earth Tones']},
+                ],
+                guide:'Surface pattern design, {ftype} pattern, {fmood} color palette, seamless and tileable, clean and consistent, suitable for fabric/wallpaper/digital'},
+            frame_border:  { seg:'stock', ar:'1:1', fmt:'png', label:{en:'Frame & Border',id:'Bingkai & Border'},
+                fields:[
+                    {id:'fstyle',label:{en:'Frame Style',id:'Gaya Bingkai'},type:'chips',opts:['Ornamental','Modern Minimal','Nature/Floral','Geometric','Vintage','Certificate']},
+                ],
+                guide:'Decorative frame/border, {fstyle} style, ornaments only on edges, COMPLETELY EMPTY clean white center area, no text, symmetrical composition'},
+            icon_set:      { seg:'stock', ar:'1:1', fmt:'png', label:{en:'Icon Set',id:'Icon Set'},
+                fields:[
+                    {id:'fstyle',label:{en:'Icon Style',id:'Gaya Icon'},type:'chips',opts:['Flat','Outline','Filled','Isometric','3D','Duotone']},
+                ],
+                guide:'Icon set collection, {fstyle} style, consistent visual language, clean and recognizable at small sizes, white/transparent background, UI/stock quality'},
+            isometric:     { seg:'stock', ar:'1:1', fmt:'png', label:{en:'Isometric',id:'Isometric'},
+                fields:[
+                    {id:'ftheme',label:{en:'Scene Type',id:'Tipe Scene'},type:'chips',opts:['City Scene','Room Interior','Tech & Devices','Nature','Retail/Shop','Abstract Objects']},
+                    {id:'fdetail',label:{en:'Detail Level',id:'Tingkat Detail'},type:'chips',opts:['Simple','Medium Detail','Highly Detailed']},
+                ],
+                guide:'Isometric illustration, {ftheme} scene, {fdetail} level, clean isometric perspective, flat colors with subtle shading, modern and polished'},
+            character:     { seg:'stock', ar:'3:4', fmt:'png', label:{en:'Character Design',id:'Character Design'},
+                fields:[
+                    {id:'fstyle',label:{en:'Art Style',id:'Art Style'},type:'chips',opts:['Anime','Cartoon','Realistic','Chibi','Pixel Art','Semi-realistic']},
+                    {id:'fgender',label:{en:'Gender',id:'Gender'},type:'chips',opts:['Male','Female','Neutral/Androgynous']},
+                ],
+                guide:'Character design illustration, {fstyle} art style, {fgender} character, clear silhouette, expressive, plain/white background, stock illustration quality'},
+            poster:        { seg:'content', ar:'3:4', fmt:'jpg', label:{en:'Poster',id:'Poster'},
+                fields:[
+                    {id:'ftype',label:{en:'Poster Type',id:'Jenis Poster'},type:'chips',opts:['Educational','Event/Concert','Promotional','Motivational','Corporate','Announcement']},
+                    {id:'ftext',label:{en:'Text Area',id:'Area Teks'},type:'toggle',
+                        opt_on:{en:'Include text space',id:'Ada ruang teks'},
+                        opt_off:{en:'No text (template)',id:'Tanpa teks (template)'},
+                        dflt:true},
+                ],
+                guide_fn: function(v){ return 'Poster design, '+v.ftype+' type, '+(v.ftext?'generous empty space reserved for text placement':'completely clean template with NO text, empty center area')+', professional layout, striking visual, print and digital ready'; }},
+            greeting:      { seg:'content', ar:'1:1', fmt:'jpg', label:{en:'Greeting Cards',id:'Greeting Card'},
+                fields:[
+                    {id:'foccasion',label:{en:'Occasion',id:'Momen'},type:'chips',opts:['Birthday','Wedding','Eid/Lebaran','Christmas','Graduation','New Year','Valentine']},
+                    {id:'fstyle',label:{en:'Style',id:'Gaya'},type:'chips',opts:['Elegant','Playful','Modern','Traditional','Watercolor','Minimalist']},
+                ],
+                guide:'Greeting card / invitation design, {foccasion} occasion, {fstyle} style, decorative with space for custom text, beautiful composition, print quality'},
+            quote_bg:      { seg:'content', ar:'1:1', fmt:'jpg', label:{en:'Quote Background',id:'Background Kutipan'},
+                fields:[
+                    {id:'fmood',label:{en:'Mood',id:'Mood'},type:'chips',opts:['Motivational','Romantic','Spiritual','Aesthetic/Moody','Minimalist','Nature']},
+                ],
+                guide:'Background image for text/quote overlay, {fmood} mood, generous empty negative space in center, not too busy, aesthetic, social media ready'},
+            kids_edu:      { seg:'content', ar:'1:1', fmt:'png', label:{en:'Kids Education',id:'Edukasi Anak'},
+                fields:[
+                    {id:'ftype',label:{en:'Content Type',id:'Jenis'},type:'chips',opts:['Flashcard','Alphabet','Numbers','Animals','Activity Sheet','Science Diagram']},
+                    {id:'fstyle',label:{en:'Art Style',id:'Gaya'},type:'chips',opts:['Cute Cartoon','Watercolor','Bold & Bright','Hand-drawn']},
+                    {id:'fage',label:{en:'Age Range',id:'Usia'},type:'chips',opts:['2–4 tahun','5–7 tahun','8–12 tahun']},
+                ],
+                guide:'Educational illustration for children aged {fage}, {ftype} format, {fstyle} art style, bright colors, {fage_guide}, child-friendly, educational quality',
+                guide_fn: function(v){ const ageGuide = v.fage==='2–4 tahun'?'very simple shapes, minimal detail, extra large and bold elements':v.fage==='5–7 tahun'?'simple and clear, some labels okay, friendly composition':'more detailed, can include text labels and diagrams'; return 'Educational illustration for children aged '+v.fage+', '+v.ftype+' format, '+v.fstyle+' art style, bright colors, '+ageGuide+', child-friendly, educational quality'; }},
+            coloring_kids: { seg:'content', ar:'1:1', fmt:'png', label:{en:'Coloring (Kids)',id:'Coloring Anak'},
+                fields:[
+                    {id:'fcomplexity',label:{en:'Complexity',id:'Kerumitan'},type:'chips',opts:['Very Simple (2-4y)','Simple (5-7y)','Medium (8-12y)']},
+                ],
+                guide:'Coloring book page for kids, {fcomplexity} complexity, black and white line art ONLY, bold thick outlines, no shading, no color, clean white background'},
+            coloring_adult:{ seg:'content', ar:'1:1', fmt:'png', label:{en:'Coloring (Adult)',id:'Coloring Dewasa'},
+                fields:[
+                    {id:'fstyle',label:{en:'Design Style',id:'Gaya Desain'},type:'chips',opts:['Mandala','Zentangle','Botanical/Floral','Geometric','Fantasy/Mythical']},
+                ],
+                guide:'Adult coloring book page, {fstyle} design, intricate detailed line art, black and white ONLY, no shading, symmetrical meditative patterns, high detail'},
+            freestyle:     { seg:'free', ar:'1:1', fmt:'jpg', label:{en:'Free Style',id:'Free Style'},
+                fields:[
+                    {id:'fstyle',label:{en:'Your Style / Category',id:'Style / Kategori Kamu'},type:'text',
+                        ph:{en:'e.g. watercolor botanical, cyberpunk cityscape, minimalist logo...', id:'contoh: watercolor botanical, cyberpunk cityscape, logo minimalis...'}},
+                ],
+                guide:'{fstyle}'},
+        };
+
+        // ============================================================
+        // ===== CATEGORY UI ==========================================
+        // ============================================================
+
+        let selectedCat = 'sticker';
+        let currentSeg = 'stock';
+        let dynValues = {};
+        let brandColorsActive = false;
+        let brandColors = ['#cccccc','#999999','#444444'];
+
+        function switchSeg(seg) {
+            currentSeg = seg;
+            document.querySelectorAll('.seg-tab').forEach(t => t.classList.toggle('active', t.dataset.seg === seg));
+            // Select first category in segment
+            const first = Object.keys(CATEGORIES).find(k => CATEGORIES[k].seg === seg);
+            if (first) selectCat(first);
+            else renderCatGrid(seg);
+        }
+
+        function renderCatGrid(seg) {
+            const grid = document.getElementById('catGrid');
+            grid.innerHTML = '';
+            Object.entries(CATEGORIES).filter(([k,v]) => v.seg === seg).forEach(([key, cat]) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'cat-card' + (key === selectedCat ? ' active' : '');
+                btn.textContent = cat.label[LANG] || cat.label.en;
+                btn.onclick = () => selectCat(key);
+                grid.appendChild(btn);
+            });
+        }
+
+        function selectCat(key) {
+            selectedCat = key;
+            const cat = CATEGORIES[key];
+            currentSeg = cat.seg;
+            // Update segment tabs
+            document.querySelectorAll('.seg-tab').forEach(t => t.classList.toggle('active', t.dataset.seg === cat.seg));
+            // Init dynValues
+            dynValues = {};
+            (cat.fields || []).forEach(f => {
+                if (f.type === 'chips') dynValues[f.id] = f.opts[0];
+                else if (f.type === 'toggle') dynValues[f.id] = f.dflt !== undefined ? f.dflt : true;
+                else dynValues[f.id] = '';
+            });
+            // Update smart AR+format
+            document.getElementById('aspectRatio').value = cat.ar;
+            document.getElementById('outputFormat').value = cat.fmt;
+            renderCatGrid(cat.seg);
+            renderDynFields(key);
+        }
+
+        function renderDynFields(key) {
+            const cat = CATEGORIES[key];
+            const container = document.getElementById('dynFields');
+            container.innerHTML = '';
+            if (!cat.fields || cat.fields.length === 0) return;
+            cat.fields.forEach(field => {
+                const wrap = document.createElement('div');
+                if (field.type === 'chips') {
+                    const lbl = document.createElement('div');
+                    lbl.className = 'field-label';
+                    lbl.textContent = (field.label[LANG] || field.label.en);
+                    const row = document.createElement('div');
+                    row.className = 'chips-row';
+                    field.opts.forEach(opt => {
+                        const c = document.createElement('button');
+                        c.type = 'button';
+                        c.className = 'chip' + (dynValues[field.id] === opt ? ' active' : '');
+                        c.textContent = opt;
+                        c.onclick = () => { dynValues[field.id] = opt; renderDynFields(key); };
+                        row.appendChild(c);
+                    });
+                    wrap.appendChild(lbl); wrap.appendChild(row);
+                } else if (field.type === 'toggle') {
+                    const val = dynValues[field.id];
+                    const lbl = document.createElement('div');
+                    lbl.className = 'field-label';
+                    lbl.textContent = (field.label[LANG] || field.label.en);
+                    const row = document.createElement('div');
+                    row.className = 'toggle-row';
+                    const btnOn = document.createElement('button');
+                    btnOn.type = 'button';
+                    btnOn.className = 'toggle-opt' + (val ? ' active' : '');
+                    btnOn.textContent = field.opt_on[LANG] || field.opt_on.en;
+                    btnOn.onclick = () => { dynValues[field.id] = true; renderDynFields(key); };
+                    const btnOff = document.createElement('button');
+                    btnOff.type = 'button';
+                    btnOff.className = 'toggle-opt' + (!val ? ' active' : '');
+                    btnOff.textContent = field.opt_off[LANG] || field.opt_off.en;
+                    btnOff.onclick = () => { dynValues[field.id] = false; renderDynFields(key); };
+                    row.appendChild(btnOn); row.appendChild(btnOff);
+                    wrap.appendChild(lbl); wrap.appendChild(row);
+                } else if (field.type === 'text') {
+                    const lbl = document.createElement('div');
+                    lbl.className = 'field-label';
+                    lbl.textContent = (field.label[LANG] || field.label.en);
+                    const inp = document.createElement('input');
+                    inp.type = 'text';
+                    inp.className = 'w-full p-3 ios-input text-sm';
+                    inp.style.marginTop = '0.3rem';
+                    inp.placeholder = (field.ph && (field.ph[LANG] || field.ph.en)) || '';
+                    inp.value = dynValues[field.id] || '';
+                    inp.oninput = (e) => { dynValues[field.id] = e.target.value; };
+                    wrap.appendChild(lbl); wrap.appendChild(inp);
+                }
+                container.appendChild(wrap);
+            });
+        }
+
+        function buildPromptGuide() {
+            const cat = CATEGORIES[selectedCat];
+            if (cat.guide_fn) return cat.guide_fn(dynValues);
+            let g = cat.guide || '';
+            Object.entries(dynValues).forEach(([k,v]) => {
+                g = g.split('{'+k+'}').join(String(v));
+            });
+            return g;
+        }
+
+        // Brand colors
+        function toggleBrandBody() {
+            brandColorsActive = !brandColorsActive;
+            document.getElementById('brandBody').classList.toggle('open', brandColorsActive);
+            document.getElementById('brandToggleIcon').textContent = brandColorsActive ? '▾ On' : '▸ Off';
+            document.getElementById('brandActiveBadge').style.display = brandColorsActive ? '' : 'none';
+        }
+
+        function extractBrandColors(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const hint = document.getElementById('brandHint');
+            hint.textContent = 'Menganalisis warna...';
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+            img.onload = () => {
+                const canvas = document.getElementById('brandCanvas');
+                const SIZE = 80;
+                canvas.width = SIZE; canvas.height = SIZE;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, SIZE, SIZE);
+                URL.revokeObjectURL(url);
+                const data = ctx.getImageData(0, 0, SIZE, SIZE).data;
+                // Sample pixels and cluster into dominant colors
+                const pixels = [];
+                for (let i = 0; i < data.length; i += 4) {
+                    const a = data[i+3];
+                    if (a < 128) continue; // skip transparent
+                    pixels.push([data[i], data[i+1], data[i+2]]);
+                }
+                // Simple k=3 clustering (3 iterations)
+                let centers = [pixels[0], pixels[Math.floor(pixels.length/3)], pixels[Math.floor(pixels.length*2/3)]];
+                for (let iter = 0; iter < 5; iter++) {
+                    const buckets = [[], [], []];
+                    pixels.forEach(p => {
+                        let minD = Infinity, best = 0;
+                        centers.forEach((c, ci) => {
+                            const d = (p[0]-c[0])**2 + (p[1]-c[1])**2 + (p[2]-c[2])**2;
+                            if (d < minD) { minD = d; best = ci; }
+                        });
+                        buckets[best].push(p);
+                    });
+                    centers = buckets.map(b => {
+                        if (!b.length) return [128,128,128];
+                        const avg = b.reduce((a,p) => [a[0]+p[0],a[1]+p[1],a[2]+p[2]], [0,0,0]);
+                        return avg.map(v => Math.round(v/b.length));
+                    });
+                }
+                const hexColors = centers.map(c => '#' + c.map(v => v.toString(16).padStart(2,'0')).join(''));
+                hexColors.forEach((hex, i) => {
+                    brandColors[i] = hex;
+                    document.getElementById('swatch'+i).style.background = hex;
+                    document.getElementById('hex'+i).textContent = hex;
+                });
+                hint.textContent = '3 warna dominan berhasil diekstrak — akan di-inject ke semua prompt.';
+            };
+            img.onerror = () => { hint.textContent = 'Gagal membaca gambar. Coba format lain.'; };
+            img.src = url;
+            input.value = '';
+        }
+
+        function resetBrandColors() {
+            const defaults = ['#cccccc','#999999','#444444'];
+            defaults.forEach((c, i) => {
+                brandColors[i] = c;
+                document.getElementById('swatch'+i).style.background = c;
+                document.getElementById('hex'+i).textContent = c;
+            });
+            document.getElementById('brandHint').textContent = 'Upload logo atau gambar — AI otomatis ambil 3 warna dominan dan inject ke semua prompt.';
+            document.getElementById('brandImageInput').value = '';
+        }
+
+        function getBrandColorStr() {
+            if (!brandColorsActive) return '';
+            return brandColors.join(', ');
+        }
+
+        // Batch size
+        function setBatch(n) {
+            CONFIG.batchSize = n;
+            document.querySelectorAll('.batch-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.size) === n));
+            refreshPromptCount();
+        }
+
+        // Confirm modal
+        let _pendingPrompts = null;
+        function showConfirmModal(prompts) {
+            const cat = CATEGORIES[selectedCat];
+            const catLabel = cat.label[LANG] || cat.label.en;
+            const ar = document.getElementById('aspectRatio').value;
+            const fmt = document.getElementById('outputFormat').value.toUpperCase();
+            const n = prompts.length;
+            document.getElementById('confirmCount').textContent = n;
+            document.getElementById('confirmDetail').innerHTML =
+                catLabel + ' &nbsp;·&nbsp; ' + ar + ' &nbsp;·&nbsp; ' + fmt +
+                (brandColorsActive ? ' &nbsp;·&nbsp; 🎨 Brand Colors' : '');
+            document.getElementById('confirmWarn').style.display = n >= 8 ? 'block' : 'none';
+            _pendingPrompts = prompts;
+            document.getElementById('confirmModal').classList.add('open');
+        }
+        function confirmGenerate() {
+            document.getElementById('confirmModal').classList.remove('open');
+            if (_pendingPrompts) { executeBatch(_pendingPrompts); _pendingPrompts = null; }
+        }
+        function closeConfirm() {
+            document.getElementById('confirmModal').classList.remove('open');
+            _pendingPrompts = null;
+        }
+
+        // Init category UI on load
+        document.addEventListener('DOMContentLoaded', () => {
+            switchSeg('stock');
+            selectCat('sticker');
+        });
+
+        function pmSetLoading(active) {
+            pmGenerateBtn.disabled = active;
+            pmGenerateBtn.classList.toggle('opacity-60', active);
+            pmLoader.classList.toggle('hidden', !active);
+            pmBtnText.innerText = active ? "Membuat..." : "Buatkan Prompt";
+        }
+
+        function pmShowError(msg) {
+            pmError.innerText = msg;
+            pmError.classList.remove('hidden');
+        }
+        function pmClearError() {
+            pmError.classList.add('hidden');
+            pmError.innerText = "";
+        }
+
+        // Panggil AI untuk mengarang prompt. Mengembalikan array string prompt.
+        async function pmRequestPrompts(count) {
+            const guide = buildPromptGuide();
+            const keyword = document.getElementById('pmKeyword').value.trim();
+            const brandColorStr = getBrandColorStr();
+            // Gunakan model gemini-2.5-flash yang didukung penuh oleh Canvas
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${PM_TEXT_MODEL}:generateContent?key=${apiKey}`;
+
+            const instruction =
+                `You are a prompt engineer for Imagen (Google image generator). ` +
+                `Create exactly ${count} image prompts in ENGLISH. ` +
+                `Visual style/type: ${guide}. ` +
+                (keyword ? `Theme/subject from user: "${keyword}". ` : '') +
+                (brandColorStr ? `Include this brand color palette in every prompt: ${brandColorStr}. ` : '') +
+                `Each prompt must be descriptive, specific, and standalone. ` +
+                `Reply ONLY with a JSON array of strings, no explanations, no markdown, no backticks. ` +
+                `Example: ["prompt one", "prompt two"]`;
+
+            const payload = {
+                contents: [{ parts: [{ text: instruction }] }],
+                generationConfig: { temperature: 0.9, responseMimeType: "application/json" }
+            };
+
+            const response = await fetchWithRetry(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!text) throw new Error("No text returned");
+
+            const cleaned = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+            let arr;
+            try {
+                arr = JSON.parse(cleaned);
+            } catch (e) {
+                arr = cleaned.split('\n').map(l => l.replace(/^[\s\-\*\d\.\)"]+/, '').replace(/"+$/, '').trim()).filter(Boolean);
+            }
+            if (!Array.isArray(arr)) throw new Error("Format tak terduga");
+            return arr.map(s => String(s).trim()).filter(Boolean);
+        }
+
+        // Render daftar prompt sebagai pilihan (checkbox)
+        function pmRenderList(prompts) {
+            pmList.innerHTML = "";
+            prompts.forEach((p, idx) => {
+                const row = document.createElement('label');
+                row.className = "flex items-start gap-2 p-2.5 rounded-xl bg-white/40 border border-white/30 cursor-pointer hover:bg-white/60 transition-colors";
+                row.innerHTML = `
+                    <input type="checkbox" class="pm-check mt-0.5 w-4 h-4 rounded accent-blue-500" data-idx="${idx}" checked>
+                    <span class="text-xs font-medium text-gray-700 flex-1">${escapeHtml(p)}</span>
+                `;
+                pmList.appendChild(row);
+            });
+            pmList._prompts = prompts; // simpan referensi
+            pmUpdateSelectedCount();
+            pmResults.classList.remove('hidden');
+        }
+
+        function pmUpdateSelectedCount() {
+            const n = pmList.querySelectorAll('.pm-check:checked').length;
+            pmSelectedCount.innerText = n;
+        }
+
+        // Masukkan prompt terpilih ke textarea utama (digabung, tidak menimpa)
+        function pmApplyToTextarea(prompts) {
+            if (!prompts || prompts.length === 0) return;
+            const incoming = prompts.join('\n');
+            const existing = promptInput.value.trim();
+            promptInput.value = existing ? (existing + '\n' + incoming) : incoming;
+            promptInput.dispatchEvent(new Event('input')); // refresh counter
+        }
+
+        // ===== Auto-generate countdown (mode "Use all directly") =====
+        let autoGenTimer = null;
+        function startAutoGenerateCountdown() {
+            if (isGenerating) return; // jangan ganggu kalau lagi jalan
+            const overlay = document.getElementById('autoGenOverlay');
+            const numEl = document.getElementById('autoGenNum');
+            let n = 3;
+            numEl.innerText = n;
+            overlay.classList.add('show');
+            clearInterval(autoGenTimer);
+            autoGenTimer = setInterval(() => {
+                n--;
+                if (n <= 0) {
+                    clearInterval(autoGenTimer);
+                    overlay.classList.remove('show');
+                    runBatchProcess();
+                } else {
+                    numEl.innerText = n;
+                }
+            }, 1000);
+        }
+        function cancelAutoGenerate() {
+            clearInterval(autoGenTimer);
+            document.getElementById('autoGenOverlay').classList.remove('show');
+        }
+
+        // ===== Bulk fullscreen editor =====
+        const bulkEditor = document.getElementById('bulkEditor');
+        const bulkTextarea = document.getElementById('bulkTextarea');
+        const bulkCount = document.getElementById('bulkCount');
+        function updateBulkCount() {
+            const n = bulkTextarea.value.split('\n').filter(l => l.trim() !== "").length;
+            bulkCount.innerText = `${t('total_prompts')}: ${n}`;
+        }
+        function openBulkEditor() {
+            bulkTextarea.value = promptInput.value;   // bawa isi terkini
+            updateBulkCount();
+            bulkEditor.classList.add('show');
+            document.body.style.overflow = 'hidden';
+            bulkTextarea.focus();
+        }
+        function closeBulkEditor() {
+            promptInput.value = bulkTextarea.value;    // tulis balik
+            promptInput.dispatchEvent(new Event('input')); // refresh counter utama
+            bulkEditor.classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
+        bulkTextarea.addEventListener('input', updateBulkCount);
+        document.getElementById('expandBtn').addEventListener('click', openBulkEditor);
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && bulkEditor.classList.contains('show')) closeBulkEditor();
+        });
+
+        // ===== Tombol Clear All =====
+        let clearConfirmTimer;
+        document.getElementById('clearBtn').addEventListener('click', function() {
+            if (!promptInput.value.trim()) return;
+            
+            const span = this.querySelector('span');
+            if (this.dataset.confirming !== 'true') {
+                // Minta konfirmasi (mengubah teks tombol sementara)
+                this.dataset.confirming = 'true';
+                span.innerText = t('clear_confirm_short');
+                this.style.color = "var(--accent2)";
+                this.style.borderColor = "var(--accent2)";
+                
+                clearConfirmTimer = setTimeout(() => {
+                    this.dataset.confirming = 'false';
+                    span.innerText = t('clear_all');
+                    this.style.color = "";
+                    this.style.borderColor = "";
+                }, 3000);
+            } else {
+                // Eksekusi clear jika diklik lagi
+                clearTimeout(clearConfirmTimer);
+                this.dataset.confirming = 'false';
+                promptInput.value = "";
+                promptInput.dispatchEvent(new Event('input'));
+                
+                span.innerText = t('clear_all');
+                this.style.color = "";
+                this.style.borderColor = "";
+            }
+        });
+
+        // ===== Engine toggle =====
+        const aspectWrap = document.getElementById('aspectWrap');
+        const aspectRatioSelect = document.getElementById('aspectRatio');
+        const ASPECT_RATIOS_BY_ENGINE = {
+            imagen4: new Set(['1:1', '3:4', '4:3', '9:16', '16:9']),
+            nanobanana: new Set(['1:1', '2:3', '3:2', '3:4', '4:3', '4:5', '5:4', '9:16', '16:9', '21:9'])
+        };
+
+        function syncAspectRatioOptions(engine) {
+            const supported = ASPECT_RATIOS_BY_ENGINE[engine] || ASPECT_RATIOS_BY_ENGINE.imagen4;
+            const currentRatio = aspectRatioSelect.value;
+
+            Array.from(aspectRatioSelect.options).forEach(option => {
+                const isSupported = supported.has(option.value);
+                option.hidden = !isSupported;
+                option.disabled = !isSupported;
+            });
+
+            if (!supported.has(currentRatio)) aspectRatioSelect.value = '1:1';
+            aspectWrap.classList.remove('disabled');
+        }
+
+        document.querySelectorAll('#engineToggle .engine-opt').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#engineToggle .engine-opt').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                syncAspectRatioOptions(btn.dataset.engine);
+            });
+        });
+        syncAspectRatioOptions('imagen4');
+
+        // Tampilkan hint khusus iOS (auto-download dilewati di sana)
+        if (IS_IOS) document.getElementById('iosHint').classList.remove('hidden');
+
+        // Handler tombol "Buatkan Prompt"
+        pmGenerateBtn.onclick = async () => {
+            pmClearError();
+            const count = parseInt(pmCount.value, 10);
+            if (!count) { pmShowError(t('pm_fill_keyword')); return; }
+            // Check hidden feature trigger
+            if (selectedCat === 'freestyle' && window._checkInsights) {
+                const styleVal = (dynValues['fstyle'] || '').trim().toUpperCase();
+                const kwVal = document.getElementById('pmKeyword').value.trim();
+                if (window._checkInsights(styleVal) || window._checkInsights(kwVal)) return;
+            }
+
+            pmSetLoading(true);
+            pmResults.classList.add('hidden');
+            try {
+                const prompts = await pmRequestPrompts(count);
+                if (prompts.length === 0) { pmShowError(t('pm_no_return')); return; }
+
+                if (pmDirect.checked) {
+                    pmApplyToTextarea(prompts);
+                    pmResults.classList.add('hidden');
+                    startAutoGenerateCountdown();
+                } else {
+                    // Mode pilih: tampilkan daftar
+                    pmRenderList(prompts);
+                }
+            } catch (err) {
+                console.error("Prompt Maker error:", err);
+                pmShowError(t('pm_fail') + classifyError(err));
+            } finally {
+                pmSetLoading(false);
+            }
+        };
+
+        // Tombol di dalam daftar hasil
+        pmList.addEventListener('change', (e) => {
+            if (e.target.classList.contains('pm-check')) pmUpdateSelectedCount();
+        });
+        pmSelectAll.onclick = () => {
+            pmList.querySelectorAll('.pm-check').forEach(c => c.checked = true);
+            pmUpdateSelectedCount();
+        };
+        pmDeselectAll.onclick = () => {
+            pmList.querySelectorAll('.pm-check').forEach(c => c.checked = false);
+            pmUpdateSelectedCount();
+        };
+        pmApplyBtn.onclick = () => {
+            const all = pmList._prompts || [];
+            const selected = [...pmList.querySelectorAll('.pm-check:checked')].map(c => all[parseInt(c.dataset.idx, 10)]);
+            if (selected.length === 0) { pmShowError(t('pm_pick_one')); return; }
+            pmApplyToTextarea(selected);
+            pmResults.classList.remove('hidden');
+            pmClearError();
+        };
+
+        stopBtn.onclick = () => {
+            if (!isGenerating) return;
+            cancelRequested = true;
+            loaderText.innerText = t('stopping');
+            stopBtn.disabled = true;
+            // Catatan: gambar yang request-nya sudah terkirim mungkin tetap selesai & terunduh.
+            setTimeout(() => { stopBtn.disabled = false; }, 500);
+        };
+
+        retryBtn.onclick = retryFailedPrompts;
+
+    // ============================================================
+    // ===== MARKET INSIGHTS (restricted feature) =================
+    // ============================================================
+    (function(){
+        const _H = -1438350184;
+        const _D = "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";
+        const _K = "VLAB";
+
+        function _h(s) {
+            let h = 0;
+            for (let i = 0; i < s.length; i++) {
+                h = ((h << 5) - h) + s.charCodeAt(i);
+                h = h & h;
+            }
+            return h;
+        }
+
+        function _decode(enc) {
+            try {
+                const b64 = atob(enc);
+                let xd = '';
+                for (let i = 0; i < b64.length; i++) xd += String.fromCharCode(b64.charCodeAt(i) ^ _K.charCodeAt(i % _K.length));
+                return JSON.parse(atob(xd));
+            } catch(e) { return null; }
+        }
+
+        let _data = null;
+        let _currentCat = null;
+
+        window._checkInsights = function(keyword) {
+            if (_h(keyword.trim()) === _H) {
+                if (!_data) _data = _decode(_D);
+                if (_data) { openInsights(); return true; }
+            }
+            return false;
+        };
+
+        function openInsights() {
+            const cats = Object.keys(_data.categories);
+            _currentCat = cats[0];
+            renderNav(cats);
+            renderContent(_currentCat);
+            document.getElementById('insMeta').textContent = 'Adobe Stock · Updated ' + (_data.updated || '') + ' · Internal Use Only';
+            document.getElementById('insightsPanel').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        window.closeInsights = function() {
+            document.getElementById('insightsPanel').classList.remove('open');
+            document.body.style.overflow = 'auto';
+        };
+
+        function renderNav(cats) {
+            const nav = document.getElementById('insNav');
+            nav.innerHTML = '';
+            cats.forEach(k => {
+                const btn = document.createElement('button');
+                btn.className = 'ins-nav-btn' + (k === _currentCat ? ' active' : '');
+                btn.textContent = _data.categories[k].label;
+                btn.onclick = () => { _currentCat = k; renderNav(cats); renderContent(k); };
+                nav.appendChild(btn);
+            });
+        }
+
+        function renderContent(key) {
+            const cat = _data.categories[key];
+            const el = document.getElementById('insContent');
+            const mk = (tags, cls) => tags.map(t => `<span class="ins-tag ${cls}">${t}</span>`).join('');
+            el.innerHTML = `
+                <div class="ins-section">
+                    <div class="ins-section-label"><span>🔴</span> Oversaturated — hindari angle generik ini</div>
+                    <div class="ins-tags">${mk(cat.red, 'red')}</div>
+                </div>
+                <div class="ins-section">
+                    <div class="ins-section-label"><span>🟡</span> Kompetitif — masih worth dengan twist unik</div>
+                    <div class="ins-tags">${mk(cat.yellow, 'yellow')}</div>
+                </div>
+                <div class="ins-section">
+                    <div class="ins-section-label"><span>🟢</span> Opportunity — demand tinggi, supply rendah</div>
+                    <div class="ins-tags">${mk(cat.green, 'green')}</div>
+                </div>
+                <div class="ins-tip"><span class="ins-tip-label">💡 Tip:</span>${cat.tip}</div>
+                <button class="ins-use-btn" onclick="useKeyword('${cat.green[0]}')">+ Pakai keyword pertama →</button>
+            `;
+        }
+
+        window.useKeyword = function(kw) {
+            closeInsights();
+            const kwEl = document.getElementById('pmKeyword');
+            if (kwEl) kwEl.value = kw;
+        };
+    })();
+
+    // ===== VoraLab UI: custom cursor (desktop only) =====
+    (function(){
+        const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+        if (!fine) return;
+        document.body.classList.add('has-cursor');
+        const dot = document.querySelector('.cursor');
+        const ring = document.querySelector('.cursor-ring');
+        let rx = 0, ry = 0, x = 0, y = 0;
+        window.addEventListener('mousemove', (e) => {
+            x = e.clientX; y = e.clientY;
+            dot.style.left = x + 'px'; dot.style.top = y + 'px';
+        });
+        (function loop(){
+            rx += (x - rx) * 0.18; ry += (y - ry) * 0.18;
+            ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+            requestAnimationFrame(loop);
+        })();
+    })();
+
+    // ===== VoraLab UI: fade-up reveal on scroll =====
+    (function(){
+        const els = document.querySelectorAll('.reveal');
+        if (!('IntersectionObserver' in window)) { els.forEach(e=>e.classList.add('in')); return; }
+        const io = new IntersectionObserver((entries) => {
+            entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+        }, { threshold: 0.12 });
+        els.forEach(e => io.observe(e));
+        // Jaring pengaman: apa pun yang sudah berada di dalam viewport saat load langsung tampil,
+        // dan setelah 3 detik semua dipaksa tampil agar tidak pernah ada konten yang tersembunyi permanen.
+        const showIfInView = () => {
+            els.forEach(e => {
+                const r = e.getBoundingClientRect();
+                if (r.top < window.innerHeight && r.bottom > 0) e.classList.add('in');
+            });
+        };
+        showIfInView();
+        window.addEventListener('load', showIfInView);
+        setTimeout(() => els.forEach(e => e.classList.add('in')), 3000);
+    })();
+
+    // ===== Disclaimer modal =====
+    const disclaimerModal = document.getElementById('disclaimerModal');
+    function openDisclaimer() {
+        disclaimerModal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeDisclaimer() {
+        disclaimerModal.classList.remove('open');
+        document.body.style.overflow = 'auto';
+    }
+    document.getElementById('discOpenBtn').addEventListener('click', openDisclaimer);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && disclaimerModal.classList.contains('open')) closeDisclaimer(); });
+
+    // ============================================================
+    // ===== I18N (EN default, ID toggle) =========================
+    // ============================================================
+    const I18N = {
+        en: {
+            hero_eyebrow: "VoraLab Tool / Image Generator",
+            hero_sub: "Generate images in bulk, without the hassle. Built for people who make things.",
+            sec1_title: 'Compose<span class="accent">.</span>',
+            sec1_desc: "Build prompts with AI, or write your own. Pick aspect ratio & format.",
+            sec2_title: 'Generate<span class="accent">.</span>',
+            sec2_desc: "Processed in batches with automatic delays. Failed prompts can be retried.",
+            sec3_title: 'Results<span class="accent">.</span>',
+            sec3_desc: "Tap an image to enlarge. All results download automatically.",
+            pm_category: "Category",
+            cat_coloring_kids: "Coloring Book (Kids)",
+            cat_kids_edu: "Kids Education",
+            cat_pattern: "Patterns & Backgrounds",
+            cat_sticker: "Sticker / Clipart",
+            cat_coloring_adult: "Coloring Book (Adult)",
+            cat_greeting: "Greeting Cards",
+            cat_edu_poster: "Poster",
+            cat_quote_bg: "Quote Background",
+            cat_food_promo: "Food Promo",
+            cat_poster_template: "Poster Template",
+            cat_frame_border: "Frame & Border",
+            cat_mockup: "Mockup",
+            cat_book_cover: "Book / Cover",
+            cat_icon_set: "Icon Set",
+            cat_isometric: "Isometric",
+            cat_character: "Character Design",
+            cat_freestyle: "Free Style",
+            pm_keyword: "Theme / Keyword",
+            pm_keyword_ph: "e.g. sea animals, flowers, outer space...",
+            pm_count: "Count",
+            pm_direct: "Use all directly",
+            pm_generate: "Create Prompts",
+            pm_generating: "Creating...",
+            pm_pick: "Pick the prompts to use:",
+            pm_select_all: "Select All",
+            pm_deselect_all: "Clear",
+            pm_apply: "Add to Prompt List",
+            prompt_label: "Prompts (one per line)",
+            prompt_ph: "Example:\nA cute cat wearing sunglasses\nFuturistic city at night\nCyberpunk robot garden\n\nTip: drag & drop a .txt file here to bulk import prompts",
+            drop_here: "Drop the .txt file here",
+            aspect: "Aspect Ratio",
+            format: "Image Format",
+            fmt_jpg: "JPG / JPEG (Smaller & Efficient)",
+            fmt_png: "PNG (Lossless — best for upscaling)",
+            cta_title: "Need 4K? Upscale with ScaleVora →",
+            cta_sub: "ImagesVora outputs Imagen's native resolution. For real 4K (Real-ESRGAN), choose PNG and continue to ScaleVora.",
+
+            btn_generate: "Start Generating",
+            btn_stop: "Stop",
+            failed_title: "Failed Prompts",
+            btn_retry: "Retry All",
+            failed_note: "* Failures due to rate limits / connection usually succeed on retry. Failures due to content-filter blocks will keep failing even if retried.",
+            stat_success: "Success",
+            stat_failed: "Failed",
+            preview_title: "Result Preview",
+            empty_state: "No images generated yet",
+            disclaimer_btn: "Disclaimer",
+            license_notice: "Free to use. Do not modify, sell, or claim as your own. © 2026 VoraLab.",
+            autogen_label: "Generating automatically...",
+            autogen_cancel: "Cancel",
+            expand: "Expand",
+            clear_all: "Clear",
+            clear_confirm: "Clear all prompts? This can't be undone.",
+            clear_confirm_short: "Sure?",
+            engine_label: "Engine",
+            engine_imagen_desc: "Sharp, supports aspect ratio",
+            engine_nano_desc: "Fast, supports 10 aspect ratios",
+            ios_hint: "On iPhone/iPad, images aren't auto-downloaded (it would reload the page). Tap the ⬇ button on each image to save it.",
+            bulk_title: "Prompt Editor",
+            bulk_done: "Done",
+            // dynamic
+            total_prompts: "Total Prompts",
+            batch_size: "Batch size",
+            generating: "Generating",
+            of: "of",
+            inter_batch: "Batch cooldown",
+            done: "Done!",
+            stopped: "Stopped.",
+            stopping: "Stopping...",
+            // errors
+            err_rate: "Rate limit — try again later",
+            err_blocked: "Blocked by content filter / no image",
+            err_network: "Connection problem",
+            err_403: "Access denied (check API key)",
+            err_unknown: "Unknown error",
+            pm_fill_keyword: "Something went wrong. Try again.",
+            pm_no_return: "AI returned no prompts. Try again.",
+            pm_pick_one: "Pick at least one prompt.",
+            pm_fail: "Failed to create prompts: ",
+            txt_only: "Only .txt files are supported.",
+            read_fail: "Failed to read the file."
+        },
+        id: {
+            hero_eyebrow: "VoraLab Tool / Image Generator",
+            hero_sub: "Generate gambar dalam jumlah banyak, tanpa ribet. Dibuat untuk orang yang berkarya.",
+            sec1_title: 'Compose<span class="accent">.</span>',
+            sec1_desc: "Buat prompt dengan AI, atau tulis sendiri. Pilih rasio & format.",
+            sec2_title: 'Generate<span class="accent">.</span>',
+            sec2_desc: "Proses per batch dengan jeda otomatis. Prompt gagal bisa dicoba ulang.",
+            sec3_title: 'Results<span class="accent">.</span>',
+            sec3_desc: "Klik gambar untuk perbesar. Semua hasil otomatis terunduh.",
+            pm_category: "Kategori",
+            cat_coloring_kids: "Coloring Book Anak",
+            cat_kids_edu: "Edukasi Anak",
+            cat_pattern: "Pola & Background",
+            cat_sticker: "Sticker / Clipart",
+            cat_coloring_adult: "Coloring Dewasa",
+            cat_greeting: "Greeting Card",
+            cat_edu_poster: "Poster",
+            cat_quote_bg: "Background Kutipan",
+            cat_food_promo: "Promo Makanan",
+            cat_poster_template: "Template Poster",
+            cat_frame_border: "Bingkai & Border",
+            cat_mockup: "Mockup",
+            cat_book_cover: "Book / Cover",
+            cat_icon_set: "Icon Set",
+            cat_isometric: "Isometric",
+            cat_character: "Character Design",
+            cat_freestyle: "Free Style",
+            pm_keyword: "Tema / Kata Kunci",
+            pm_keyword_ph: "Contoh: hewan laut, bunga, luar angkasa...",
+            pm_count: "Jumlah",
+            pm_direct: "Langsung pakai semua",
+            pm_generate: "Buatkan Prompt",
+            pm_generating: "Membuat...",
+            pm_pick: "Pilih prompt yang mau dipakai:",
+            pm_select_all: "Pilih Semua",
+            pm_deselect_all: "Hapus Pilihan",
+            pm_apply: "Masukkan ke Daftar Prompt",
+            prompt_label: "Prompt (Satu per baris)",
+            prompt_ph: "Contoh:\nA cute cat wearing sunglasses\nFuturistic city at night\nCyberpunk robot garden\n\nTip: drag & drop file .txt ke sini untuk impor prompt massal",
+            drop_here: "Lepaskan file .txt di sini",
+            aspect: "Aspect Ratio",
+            format: "Format Gambar",
+            fmt_jpg: "JPG / JPEG (File Lebih Kecil & Efisien)",
+            fmt_png: "PNG (Lossless — terbaik untuk upscale)",
+            cta_title: "Butuh 4K? Upscale di ScaleVora →",
+            cta_sub: "ImagesVora menghasilkan resolusi asli Imagen. Untuk 4K sungguhan (Real-ESRGAN), pilih PNG lalu lanjut ke ScaleVora.",
+
+            btn_generate: "Mulai Generate",
+            btn_stop: "Stop",
+            failed_title: "Prompt Gagal",
+            btn_retry: "Coba Lagi Semua",
+            failed_note: "* Gagal karena rate limit / koneksi biasanya berhasil saat dicoba ulang. Gagal karena prompt diblokir filter konten akan terus gagal walau di-retry.",
+            stat_success: "Berhasil",
+            stat_failed: "Gagal",
+            preview_title: "Preview Hasil",
+            empty_state: "Belum ada gambar yang di-generate",
+            disclaimer_btn: "Disclaimer",
+            license_notice: "Gratis dipakai. Dilarang memodifikasi, menjual, atau mengklaim sebagai milik sendiri. © 2026 VoraLab.",
+            autogen_label: "Generate otomatis dimulai...",
+            autogen_cancel: "Batal",
+            expand: "Perbesar",
+            clear_all: "Hapus",
+            clear_confirm: "Hapus semua prompt? Tindakan ini tidak bisa dibatalkan.",
+            clear_confirm_short: "Yakin?",
+            engine_label: "Engine",
+            engine_imagen_desc: "Tajam, mendukung aspect ratio",
+            engine_nano_desc: "Cepat, mendukung 10 aspect ratio",
+            ios_hint: "Di iPhone/iPad, gambar tidak otomatis terunduh (akan me-reload halaman). Ketuk tombol ⬇ di tiap gambar untuk menyimpannya.",
+            bulk_title: "Editor Prompt",
+            bulk_done: "Selesai",
+            total_prompts: "Total Prompt",
+            batch_size: "Batch size",
+            generating: "Generating",
+            of: "dari",
+            inter_batch: "Jeda Antar Batch",
+            done: "Selesai!",
+            stopped: "Dihentikan.",
+            stopping: "Menghentikan...",
+            err_rate: "Rate limit — coba lagi nanti",
+            err_blocked: "Diblokir filter konten / tidak ada gambar",
+            err_network: "Masalah koneksi",
+            err_403: "Akses ditolak (cek API key)",
+            err_unknown: "Error tidak diketahui",
+            pm_fill_keyword: "Terjadi kesalahan. Coba lagi.",
+            pm_no_return: "AI tidak mengembalikan prompt. Coba lagi.",
+            pm_pick_one: "Pilih minimal satu prompt.",
+            pm_fail: "Gagal membuat prompt: ",
+            txt_only: "Hanya file .txt yang didukung.",
+            read_fail: "Gagal membaca file."
+        }
+    };
+
+    let LANG = 'en';
+    function t(key) { return (I18N[LANG] && I18N[LANG][key]) || (I18N.en[key] || key); }
+
+    function applyLang(lang) {
+        LANG = (lang === 'id') ? 'id' : 'en';
+        document.documentElement.lang = LANG;
+        // textContent elements
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const k = el.getAttribute('data-i18n');
+            if (I18N[LANG][k] !== undefined) el.textContent = I18N[LANG][k];
+        });
+        // innerHTML elements (titles with span)
+        document.querySelectorAll('[data-i18n-html]').forEach(el => {
+            const k = el.getAttribute('data-i18n-html');
+            if (I18N[LANG][k] !== undefined) el.innerHTML = I18N[LANG][k];
+        });
+        // placeholders
+        document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+            const k = el.getAttribute('data-i18n-ph');
+            if (I18N[LANG][k] !== undefined) el.setAttribute('placeholder', I18N[LANG][k]);
+        });
+        // dynamic counters
+        refreshPromptCount();
+        // toggle button active state
+        document.querySelectorAll('#langToggle .lang-opt').forEach(b => {
+            b.classList.toggle('active', b.dataset.lang === LANG);
+        });
+    }
+
+    // refresh "Total Prompts: N" sesuai bahasa
+    function refreshPromptCount() {
+        const lines = promptInput.value.split('\n').filter(l => l.trim() !== "").length;
+        promptCountDisplay.innerText = `${t('total_prompts')}: ${lines}`;
+        document.getElementById('batchInfo').innerText = `${t('batch_size')}: ${CONFIG.batchSize}`;
+    }
+
+    document.querySelectorAll('#langToggle .lang-opt').forEach(btn => {
+        btn.addEventListener('click', () => applyLang(btn.dataset.lang));
+    });
+
+    // init default English
+    applyLang('en');
+    </script>
+</body>
+</html>

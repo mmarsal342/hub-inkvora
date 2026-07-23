@@ -3,6 +3,16 @@ import { join } from 'path'
 import { initDb, getDb } from './database'
 import { registerIpcHandlers } from './ipc-handlers'
 
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION:', err)
+})
+process.on('unhandledRejection', (reason) => {
+  console.error('UNHANDLED REJECTION:', reason)
+})
+
+app.commandLine.appendSwitch('no-sandbox')
+app.disableHardwareAcceleration()
+
 let mainWindow: BrowserWindow | null = null
 
 function createWindow() {
@@ -26,10 +36,23 @@ function createWindow() {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  // Catch renderer crashes
+  // @ts-expect-error Electron 34 type mismatch for 'crashed' event
+  mainWindow.webContents.on('crashed', (event, killed) => {
+    console.error('RENDERER CRASHED:', { killed })
+  })
 }
 
+app.disableHardwareAcceleration()
+
 app.whenReady().then(() => {
-  initDb()
+  try {
+    initDb()
+    console.log('Database initialized successfully')
+  } catch (dbErr) {
+    console.error('Database init FAILED:', dbErr)
+  }
   registerIpcHandlers()
   createWindow()
 

@@ -1,39 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --ih-bg-primary: #1a1a2e;
-  --ih-bg-secondary: #16213e;
-  --ih-bg-tertiary: #0f3460;
-  --ih-text-primary: #e0e0e0;
-  --ih-text-secondary: #a0a0b0;
-  --ih-accent: #e94560;
-  --ih-border: #2a2a4a;
-  --ih-font-mono: 'SF Mono', 'Menlo', 'Consolas', monospace;
-  --ih-font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --bg: #0a0a0a;
+  --surface: #111111;
+  --surface2: #161616;
+  --border: #1f1f1f;
+  --border2: #2a2a2a;
+  --text: #f0ede8;
+  --muted: #5a5754;
+  --muted2: #807c77;
+  --accent: #e8ff47;
+  --accent2: #ff6b35;
+  --font-display: 'Syne', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --font-sans: 'Syne', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 html, body, #app {
   height: 100%;
   width: 100%;
   overflow: hidden;
-  font-family: var(--ih-font-sans);
-  background: var(--ih-bg-primary);
-  color: var(--ih-text-primary);
+  font-family: var(--font-display);
+  background: var(--bg);
+  color: var(--text);
   user-select: none;
 }
 
+/* Noise overlay */
+#app::before {
+  content: ''; position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 1000;
+}
+#app::after {
+  content: ''; position: fixed; width: 70vw; max-width: 600px; aspect-ratio: 1;
+  background: radial-gradient(circle, rgba(232,255,71,0.06) 0%, transparent 70%);
+  top: -15%; left: -15%; pointer-events: none; z-index: 0;
+}
+
+/* Grid bg */
+.bg-grid {
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 100% 60% at 50% 0%, black, transparent);
+  pointer-events: none; z-index: 0;
+}
+
+/* ── 3-Pane Layout ────────────────────────────────── */
 .ih-3pane {
   display: grid;
-  grid-template-columns: 250px 1fr 300px;
+  grid-template-columns: 260px 1fr 300px;
   height: 100vh;
+  position: relative;
+  z-index: 1;
 }
 
 .ih-pane {
@@ -41,115 +69,181 @@ html, body, #app {
   user-select: none;
 }
 
+.ih-pane::-webkit-scrollbar { width: 4px; }
+.ih-pane::-webkit-scrollbar-track { background: transparent; }
+.ih-pane::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
 .ih-sidebar {
-  background: var(--ih-bg-secondary);
-  border-right: 1px solid var(--ih-border);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
 }
 
 .ih-editor-wrap {
-  background: var(--ih-bg-primary);
+  background: var(--bg);
   display: flex;
   flex-direction: column;
 }
 
 .ih-inspector {
-  background: var(--ih-bg-secondary);
-  border-left: 1px solid var(--ih-border);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
 }
 
+/* ── Editor ────────────────────────────────────────── */
 .ih-editor {
   flex: 1;
   overflow-y: auto;
   user-select: text;
   padding: 2rem 3rem;
-  font-size: 1.05rem;
+  font-size: 1rem;
   line-height: 1.8;
   outline: none;
+  font-family: var(--font-sans);
+  color: #e0ddd8;
 }
+
+.ih-editor:focus-within { background: rgba(255,255,255,0.01); }
 
 .ih-editor .ProseMirror {
   outline: none;
   min-height: 100%;
 }
 
+.ih-editor .ProseMirror p { margin: 0.5em 0; }
+
 .ih-editor .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
-  color: var(--ih-text-secondary);
+  color: var(--muted);
   pointer-events: none;
   height: 0;
 }
 
+/* ── Header Bar ────────────────────────────────────── */
 .ih-header {
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid var(--ih-border);
-  font-size: 0.8rem;
-  color: var(--ih-text-secondary);
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: var(--muted2);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 2.5rem;
+  min-height: 3rem;
+  background: var(--surface2);
+  font-weight: 600;
+  letter-spacing: 0.03em;
 }
 
+.ih-header input,
+.ih-header input:focus {
+  background: transparent;
+  outline: none;
+  border: none;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.ih-header input::placeholder { color: var(--muted); }
+
+/* ── Tree / Sidebar ────────────────────────────────── */
 .ih-tree-item {
-  padding: 0.3rem 0.5rem 0.3rem 1rem;
+  padding: 0.5rem 0.75rem;
   cursor: pointer;
-  font-size: 0.85rem;
-  border-radius: 4px;
-  margin: 1px 0.5rem;
-  transition: background 0.1s;
+  font-size: 0.8rem;
+  border-radius: 6px;
+  margin: 2px 8px;
+  transition: all 0.1s;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .ih-tree-item:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255,255,255,0.03);
 }
 
 .ih-tree-item.active {
-  background: var(--ih-bg-tertiary);
-  color: #fff;
+  background: rgba(232,255,71,0.08);
+  color: var(--accent);
+  border: 1px solid rgba(232,255,71,0.15);
 }
 
+/* ── Buttons ───────────────────────────────────────── */
 .ih-btn {
-  padding: 0.35rem 0.8rem;
-  border: 1px solid var(--ih-border);
-  border-radius: 4px;
+  padding: 0.4rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
   background: transparent;
-  color: var(--ih-text-primary);
+  color: var(--text);
   cursor: pointer;
-  font-size: 0.8rem;
-  transition: all 0.1s;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.75rem;
+  transition: all 0.15s;
+  letter-spacing: 0.02em;
 }
 
 .ih-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: var(--ih-accent);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .ih-btn-primary {
-  background: var(--ih-accent);
-  border-color: var(--ih-accent);
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
 }
 
+.ih-btn-primary:hover {
+  background: transparent;
+  color: var(--accent);
+}
+
+/* ── Entity ────────────────────────────────────────── */
 .ih-entity-card {
-  padding: 0.6rem;
-  border: 1px solid var(--ih-border);
-  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
   margin-bottom: 0.5rem;
   cursor: pointer;
-  transition: border 0.1s;
+  transition: all 0.15s;
+  background: var(--surface);
 }
 
 .ih-entity-card:hover {
-  border-color: var(--ih-accent);
+  border-color: var(--accent2);
+  background: rgba(255,107,53,0.04);
 }
 
+/* ── States ────────────────────────────────────────── */
 .ih-empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: var(--ih-text-secondary);
+  color: var(--muted);
   text-align: center;
   padding: 2rem;
+  font-size: 0.9rem;
+}
+
+/* ── Logo ──────────────────────────────────────────── */
+.ih-logo {
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.ih-logo span { color: var(--accent); }
+
+/* ── Section headers ────────────────────────────────── */
+.ih-section-title {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+  padding: 1rem 1rem 0.5rem;
 }

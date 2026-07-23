@@ -14,6 +14,7 @@ export function initDb(): Database.Database {
   db = new Database(dbPath)
   db.pragma('journal_mode = WAL')
   db.pragma('foreign_keys = ON')
+  db.pragma('busy_timeout = 5000')
   migrate()
   return db
 }

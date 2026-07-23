@@ -12,37 +12,28 @@ export default function Sidebar({ project, units, activeUnitId, onSelectUnit, on
   return (
     <aside class="ih-pane ih-sidebar flex flex-col justify-between">
       <div>
-        <div class="ih-header border-b border-gray-800 p-4">
-          <span class="font-bold text-white tracking-wide">{project.title}</span>
-          <span class="text-xs px-2 py-0.5 bg-indigo-900/60 rounded text-indigo-200 uppercase">{project.format}</span>
+        <div class="ih-header">
+          <div class="ih-logo">InkVora <span>Hub</span></div>
+          <span class="text-[10px] px-2 py-0.5 rounded bg-[var(--border)] text-[var(--accent)] uppercase tracking-wider font-mono">{project.format}</span>
         </div>
         
-        <div class="mt-4">
-          <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Manuscript</div>
-          <div class="space-y-1">
-            {units.map((unit) => (
-              <div
-                key={unit.id}
-                class={`ih-tree-item py-2 px-3 mx-2 rounded cursor-pointer transition ${
-                  activeUnitId === unit.id 
-                    ? 'bg-indigo-600 text-white font-medium' 
-                    : 'text-gray-400 hover:bg-gray-800/40 hover:text-white'
-                }`}
-                onClick={() => onSelectUnit(unit.id)}
-              >
-                {unit.title}
-              </div>
-            ))}
-          </div>
+        <div class="ih-section-title">Manuscript</div>
+        <div class="space-y-[1px]">
+          {units.map((unit) => (
+            <div
+              key={unit.id}
+              class={`ih-tree-item ${activeUnitId === unit.id ? 'active' : ''}`}
+              onClick={() => onSelectUnit(unit.id)}
+            >
+              {unit.title}
+            </div>
+          ))}
         </div>
       </div>
       
-      <div class="p-4 border-t border-gray-800/60">
-        <button 
-          onClick={onAddUnit} 
-          class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded text-sm transition"
-        >
-          + Add New Scene
+      <div class="p-4 border-t border-[var(--border)]">
+        <button onClick={onAddUnit} class="ih-btn ih-btn-primary w-full text-xs py-2">
+          + New Scene
         </button>
       </div>
     </aside>
