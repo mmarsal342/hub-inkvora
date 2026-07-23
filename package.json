@@ -1,0 +1,38 @@
+{
+  "name": "inkvora-hub",
+  "version": "0.0.1",
+  "private": true,
+  "description": "InkVora Hub – local-first writing application",
+  "main": "./out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "postinstall": "electron-builder install-app-deps",
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.7.0",
+    "@tiptap/core": "^2.10.0",
+    "@tiptap/starter-kit": "^2.10.0",
+    "@tiptap/pm": "^2.10.0",
+    "@tiptap/extension-mention": "^2.10.0",
+    "@tiptap/extension-placeholder": "^2.10.0",
+    "preact": "^10.24.0",
+    "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "electron": "^34.0.0",
+    "electron-vite": "^2.3.0",
+    "electron-builder": "^25.1.0",
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/uuid": "^10.0.0",
+    "typescript": "^5.6.0",
+    "vite": "^5.4.0",
+    "@preact/preset-vite": "^2.9.0",
+    "tailwindcss": "^3.4.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0"
+  }
+}

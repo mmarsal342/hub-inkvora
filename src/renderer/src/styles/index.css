@@ -1,0 +1,155 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ih-bg-primary: #1a1a2e;
+  --ih-bg-secondary: #16213e;
+  --ih-bg-tertiary: #0f3460;
+  --ih-text-primary: #e0e0e0;
+  --ih-text-secondary: #a0a0b0;
+  --ih-accent: #e94560;
+  --ih-border: #2a2a4a;
+  --ih-font-mono: 'SF Mono', 'Menlo', 'Consolas', monospace;
+  --ih-font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #app {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: var(--ih-font-sans);
+  background: var(--ih-bg-primary);
+  color: var(--ih-text-primary);
+  user-select: none;
+}
+
+.ih-3pane {
+  display: grid;
+  grid-template-columns: 250px 1fr 300px;
+  height: 100vh;
+}
+
+.ih-pane {
+  overflow-y: auto;
+  user-select: none;
+}
+
+.ih-sidebar {
+  background: var(--ih-bg-secondary);
+  border-right: 1px solid var(--ih-border);
+}
+
+.ih-editor-wrap {
+  background: var(--ih-bg-primary);
+  display: flex;
+  flex-direction: column;
+}
+
+.ih-inspector {
+  background: var(--ih-bg-secondary);
+  border-left: 1px solid var(--ih-border);
+}
+
+.ih-editor {
+  flex: 1;
+  overflow-y: auto;
+  user-select: text;
+  padding: 2rem 3rem;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  outline: none;
+}
+
+.ih-editor .ProseMirror {
+  outline: none;
+  min-height: 100%;
+}
+
+.ih-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--ih-text-secondary);
+  pointer-events: none;
+  height: 0;
+}
+
+.ih-header {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--ih-border);
+  font-size: 0.8rem;
+  color: var(--ih-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 2.5rem;
+}
+
+.ih-tree-item {
+  padding: 0.3rem 0.5rem 0.3rem 1rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  border-radius: 4px;
+  margin: 1px 0.5rem;
+  transition: background 0.1s;
+}
+
+.ih-tree-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.ih-tree-item.active {
+  background: var(--ih-bg-tertiary);
+  color: #fff;
+}
+
+.ih-btn {
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--ih-border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ih-text-primary);
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.1s;
+}
+
+.ih-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--ih-accent);
+}
+
+.ih-btn-primary {
+  background: var(--ih-accent);
+  border-color: var(--ih-accent);
+}
+
+.ih-entity-card {
+  padding: 0.6rem;
+  border: 1px solid var(--ih-border);
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: border 0.1s;
+}
+
+.ih-entity-card:hover {
+  border-color: var(--ih-accent);
+}
+
+.ih-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--ih-text-secondary);
+  text-align: center;
+  padding: 2rem;
+}
