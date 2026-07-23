@@ -110,6 +110,15 @@ export function registerIpcHandlers() {
     return getDb().prepare('SELECT * FROM entities WHERE id = ?').get(id)
   })
 
+  ipcMain.handle('entity:search', (_e, projectId: string, query: string) => {
+    return getDb().prepare(
+      `SELECT e.id, e.name, e.entity_type FROM entities e
+       JOIN project_entities pe ON e.id = pe.entity_id
+       WHERE pe.project_id = ? AND e.deleted_at IS NULL AND e.name LIKE ?
+       ORDER BY e.name ASC LIMIT 10`
+    ).all(projectId, `%${query}%`)
+  })
+
   ipcMain.handle('entity:softDelete', (_e, id: string) => {
     const ts = now()
     getDb().prepare('UPDATE entities SET deleted_at = ?, updated_at = ? WHERE id = ?').run(ts, ts, id)

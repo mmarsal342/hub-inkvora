@@ -19,6 +19,7 @@ const hub = {
   // Entity
   listEntities: (projectId: string) => ipcRenderer.invoke('entity:list', projectId),
   getEntity: (id: string) => ipcRenderer.invoke('entity:get', id),
+  searchEntities: (projectId: string, query: string) => ipcRenderer.invoke('entity:search', projectId, query),
   createEntity: (data: { project_id: string; entity_type: string; name: string; core_fields?: any; extended_fields?: any }) =>
     ipcRenderer.invoke('entity:create', data),
   updateEntity: (id: string, data: any) => ipcRenderer.invoke('entity:update', id, data),

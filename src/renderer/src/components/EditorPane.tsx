@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from 'preact/hooks'
 import { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
+import { createMentionExtension } from '../extensions/mention'
 import type { Unit } from '@shared/types'
 
 interface EditorPaneProps {
@@ -25,11 +26,13 @@ export default function EditorPane({ unit, onUpdateUnit }: EditorPaneProps) {
 
   useEffect(() => {
     if (!editorRef.current || !unit) return
-    if (unitIdRef.current === unit.id) return // same unit, skip
+    if (unitIdRef.current === unit.id) return
 
-    // Destroy previous instance
     editorInst.current?.destroy()
     unitIdRef.current = unit.id
+
+    // Set global projectId reference for mention helper
+    ;(window as any).__ihProjectId = unit.project_id
 
     let initialContent: any = ''
     try {
@@ -40,15 +43,17 @@ export default function EditorPane({ unit, onUpdateUnit }: EditorPaneProps) {
       element: editorRef.current,
       extensions: [
         StarterKit,
-        Placeholder.configure({ placeholder: 'Start writing...' })
+        Placeholder.configure({ placeholder: 'Start writing...' }),
+        createMentionExtension(() => {
+          // Trigger callbacks or force updates if needed when mention added
+        })
       ],
       content: initialContent,
       onUpdate: ({ editor }) => {
         const json = JSON.stringify(editor.getJSON())
         const text = editor.getText()
-        setWordCount(text ? text.trim().split(/\\s+/).filter(Boolean).length : 0)
+        setWordCount(text ? text.trim().split(/\s+/).filter(Boolean).length : 0)
         
-        // Debounce update to prevent SQLite BUSY locks
         clearTimeout((window as any)._updateTimer)
         ;(window as any)._updateTimer = setTimeout(() => {
           if (unitIdRef.current) {

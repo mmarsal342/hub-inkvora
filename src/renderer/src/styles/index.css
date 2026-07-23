@@ -128,6 +128,92 @@ html, body, #app {
   letter-spacing: 0.005em;
 }
 
+/* ── @Mention dropdown ──────────────────────────────── */
+.ih-mention-dropdown {
+  position: fixed;
+  z-index: 9999;
+  min-width: 200px;
+  max-width: 300px;
+  max-height: 240px;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+.ih-mention-dropdown .ih-mention-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.1s;
+  font-size: 0.8rem;
+  margin-bottom: 1px;
+}
+
+.ih-mention-dropdown .ih-mention-item:hover,
+.ih-mention-dropdown .ih-mention-item-active {
+  background: var(--accent-soft);
+}
+
+.ih-mention-dropdown .ih-mention-icon {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0;
+  flex-shrink: 0;
+}
+
+.ih-mention-dropdown .ih-mention-type-character { background: rgba(232,255,71,0.15); color: var(--accent); }
+.ih-mention-dropdown .ih-mention-type-location { background: rgba(107,157,255,0.15); color: #6b9dff; }
+.ih-mention-dropdown .ih-mention-type-faction { background: rgba(255,107,53,0.15); color: var(--accent2); }
+.ih-mention-dropdown .ih-mention-type-item { background: rgba(255,215,0,0.15); color: #ffd700; }
+.ih-mention-dropdown .ih-mention-type-lore { background: rgba(180,130,255,0.15); color: #b482ff; }
+.ih-mention-dropdown .ih-mention-type-timeline_event { background: rgba(80,200,120,0.15); color: #50c878; }
+
+.ih-mention-dropdown .ih-mention-label {
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ih-mention-dropdown .ih-mention-empty {
+  padding: 12px 8px;
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-align: center;
+  font-style: italic;
+}
+
+/* ── Inline mention node ────────────────────────────── */
+.ih-mention {
+  display: inline;
+  background: var(--accent-soft);
+  color: var(--accent);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.ih-mention:hover {
+  background: rgba(232,255,71,0.2);
+}
+
 .ih-editor:focus-within {
   box-shadow: inset 0 0 0 2px var(--accent-soft);
 }
